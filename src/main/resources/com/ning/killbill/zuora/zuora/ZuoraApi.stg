@@ -1,0 +1,225 @@
+group zuora;
+
+
+getSubscriptionsForAccount(accountId) ::= <<
+  select Id,
+    OriginalId,
+    Status,
+    AccountId,
+    Version,
+    SubscriptionStartDate,
+    ContractEffectiveDate,
+    Name,
+    Killbill__c
+  from Subscription
+  where AccountId = '<accountId>'
+>>
+
+getSubscriptionByKillbilPaymentId(paymentId) ::= <<
+  select Id,
+    OriginalId,
+    Status,
+    AccountId,
+    Version,
+    SubscriptionStartDate,
+    ContractEffectiveDate,
+    Name,
+    Killbill__c
+  from Subscription
+  where Killbill__c = '<paymentId>'
+>>
+
+getPostedInvoicesForAccount(accountId) ::= <<
+  select
+    Id,
+    AccountId,
+    InvoiceNumber,
+    Balance,
+    InvoiceDate,
+    TargetDate,
+    Killbill__c
+  from Invoice
+  where Status = 'Posted' and AccountId = '<accountId>'
+>>
+
+
+getInvoiceByKillbillPaymentId(paymentId) ::= <<
+  select
+    Id,
+    AccountId,
+    InvoiceNumber,
+    Balance,
+    InvoiceDate,
+    TargetDate,
+    Killbill__c
+  from Invoice
+  where Status = 'Posted' and Killbill__c = '<paymentId>'
+>>
+
+getRatePlanCharge(name) ::= <<
+  select Id, 
+    ChargeModel, 
+    ChargeType, 
+    Name, 
+    NumberOfPeriod, 
+    AccountingCode, 
+    BillCycleDay, 
+    BillCycleType, 
+    RevRecCode, 
+    RevRecTriggerCondition, 
+    SpecificBillingPeriod, 
+    ProductRatePlanId 
+  from ProductRatePlanCharge 
+  where Name = '<name>'
+>>
+
+getAccountByAccountName(accountName) ::= <<
+  select Id, 
+    AccountNumber, 
+    AutoPay,
+    DefaultPaymentMethodId,
+    Balance, 
+    BillCycleDay, 
+    BillToId, 
+    Currency,
+    PaymentGateway
+  from Account
+  where AccountNumber = '<accountName>' and Status = 'Active'
+>>
+
+getAccountById(id) ::= << 
+  select Id,
+    AccountNumber,
+    AutoPay,
+    DefaultPaymentMethodId,
+    Balance,
+    BillCycleDay,
+    BillToId,
+    Currency,
+    PaymentGateway
+  from Account
+  where Id = '<id>' and Status = 'Active'
+>>
+ 
+getPaymentFromId(id) ::= <<
+  select 
+    AccountId, 
+    AccountingCode, 
+    Amount, 
+    AppliedCreditBalanceAmount, 
+    BankIdentificationNumber, 
+    Comment, 
+    CreatedDate, 
+    EffectiveDate, 
+    GatewayOrderId, 
+    GatewayResponseCode, 
+    GatewayResponse, 
+    Id, 
+    PaymentMethodId, 
+    PaymentNumber, 
+    ReferenceId, 
+    RefundAmount, 
+    SecondPaymentReferenceId, 
+    Status, 
+    Type, 
+    UpdatedDate 
+  from Payment where Id = '<id>'
+>>
+
+getProcessedPaymentsForAccount(accountId) ::= <<
+  select 
+    AccountId, 
+    AccountingCode, 
+    Amount, 
+    AppliedCreditBalanceAmount, 
+    BankIdentificationNumber, 
+    Comment, 
+    CreatedDate, 
+    EffectiveDate, 
+    GatewayOrderId, 
+    GatewayResponseCode, 
+    GatewayResponse,
+    Id, 
+    PaymentMethodId, 
+    PaymentNumber, 
+    ReferenceId, 
+    RefundAmount, 
+    SecondPaymentReferenceId, 
+    Status, 
+    Type, 
+    UpdatedDate 
+  from Payment where AccountId = '<accountId>' and Status = 'Processed'
+>>
+
+getRefundInvoicePayment(invoicePaymentId)  ::= <<
+    select
+      InvoicePaymentId,
+      RefundAmount,
+      RefundId
+    from RefundInvoicePayment where InvoicePaymentId = '<invoicePaymentId>'
+>>
+
+getInvoicePayments(paymentId) ::= <<
+    select
+      Id,
+      PaymentId,
+      InvoiceId,
+      RefundAmount
+    from InvoicePayment where PaymentId = '<paymentId>'
+>>
+
+getPaymentMethods(accountId) ::= <<
+  select
+    Id,
+    AccountId,
+    Type,
+    CreditCardHolderName,
+    CreditCardAddress1,
+    CreditCardAddress2,
+    CreditCardCity,
+    CreditCardState,
+    CreditCardPostalCode,
+    CreditCardCountry,
+    CreditCardExpirationMonth,
+    CreditCardExpirationYear,
+    CreditCardMaskNumber,
+    CreditCardType,
+    NumConsecutiveFailures,
+    LastTransactionStatus,
+    PaypalBaid,
+    PaypalEmail
+  from PaymentMethod
+  where AccountId = '<accountId>'
+>>
+
+getPaymentMethod(paymentMethodId) ::= <<
+  select
+    Id,
+    AccountId,
+    Type,
+    CreditCardHolderName,
+    CreditCardAddress1,
+    CreditCardAddress2,
+    CreditCardCity,
+    CreditCardState,
+    CreditCardPostalCode,
+    CreditCardCountry,
+    CreditCardExpirationMonth,
+    CreditCardExpirationYear,
+    CreditCardMaskNumber,
+    CreditCardType,
+    NumConsecutiveFailures,
+    LastTransactionStatus,
+    PaypalBaid,
+    PaypalEmail  
+  from PaymentMethod
+  where Id = '<paymentMethodId>'
+>>
+
+getOtherPaymentMethod() ::= <<
+    select
+      Id
+    from
+      PaymentMethod
+    where Type = 'Other'
+>>
