@@ -1,3 +1,19 @@
+/*
+ * Copyright 2010-2013 Ning, Inc.
+ *
+ *  Ning licenses this file to you under the Apache License, version 2.0
+ *  (the "License"); you may not use this file except in compliance with the
+ *  License.  You may obtain a copy of the License at:
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations
+ *  under the License.
+ */
+
 package com.ning.killbill.zuora.zuora.setup;
 
 import org.skife.config.Config;
@@ -5,52 +21,54 @@ import org.skife.config.Default;
 import org.skife.config.DefaultNull;
 
 public interface ZuoraConfig {
+    
+    static final String ZuoraConfigPropertyPrefix = "killbill.zuora.config.";
 
-    @Config("killbill.payment.provider.${pluginInstanceName}.userName")
+    @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.userName")
     @Default("foo")
     public String getZuoraUserName();
 
-    @Config("killbill.payment.provider.${pluginInstanceName}.password")
+    @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.password")
     @Default("bar")
     public String getZuoraPassword();
 
-    @Config("killbill.payment.provider.${pluginInstanceName}.url")
+    @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.url")
     @Default("https://apisandbox.zuora.com/apps/services/a/27.0")
     public String getZuoraApiUrl();
 
-    @Config("killbill.payment.provider.${pluginInstanceName}.propertyFileLocation")
+    @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.propertyFileLocation")
     @DefaultNull
     public String getZuoraPropertyFileLocation();
 
-    @Config("killbill.payment.provider.${pluginInstanceName}.ratePlanChargeName")
+    @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.ratePlanChargeName")
     @Default("ning-killbill2-onetime")
     public String getRatePlanChargeName();
 
-    @Config("killbill.payment.provider.${pluginInstanceName}.pool.maxIdle")
+    @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.pool.maxIdle")
     @Default("8")
     public int getPoolMaxIdle();
 
-    @Config("killbill.payment.provider.${pluginInstanceName}.pool.minIdle")
+    @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.pool.minIdle")
     @Default("0")
     public int getPoolMinIdle();
 
-    @Config("killbill.payment.provider.${pluginInstanceName}.pool.maxActive")
+    @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.pool.maxActive")
     @Default("8")
     public int getPoolMaxActive();
 
-    @Config("killbill.payment.provider.${pluginInstanceName}.maxLoginRetries")
+    @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.maxLoginRetries")
     @Default("3")
     public int getMaxLoginRetries();
 
-    @Config("killbill.payment.provider.${pluginInstanceName}.isOverrideCreditCardGateway")
+    @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.isOverrideCreditCardGateway")
     @Default("false")
     public boolean isOverrideCreditcardGateway();
 
-    @Config("killbill.payment.provider.${pluginInstanceName}.overrideCreditCardGateway")
+    @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.overrideCreditCardGateway")
     @Default("")
     public String getOverrideCreditcardGateway();
 
-    @Config("killbill.payment.provider.${pluginInstanceName}.shouldCheckForStatePayment")
+    @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.shouldCheckForStatePayment")
     @Default("true")
     public boolean shouldCheckForStatePayment();
 
