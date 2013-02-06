@@ -1,4 +1,3 @@
-
 What is it?
 -----------
 
@@ -8,7 +7,7 @@ the version 27.0 of the zuora API.
 Setup
 -----
 
-1. Add zuora api jar in the pom
+First, add zuora api jar in the pom:
 
 Zuora API is not public, and they provide you with an xml configuration of their API that can be used to generate java classes.
 
@@ -21,7 +20,7 @@ zuora_api_version=XXX
 Another option is to edit the pom directly.
 
 
-2. Custom Fields
+Second, configure Zuora with the new custom fields:
 
 The plugin makes use of a specific custom field (a 128 long string), called 'Killbill' for the following zuora objects:
 * Subscription
