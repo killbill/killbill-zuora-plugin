@@ -16,13 +16,12 @@
 
 package com.ning.killbill.zuora.util;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonValue;
-
 public abstract class Either<T, V> {
+
     public static <T, V> Either<T, V> left(T value) {
         return new Left<T, V>(value);
     }
+
     public static <T, V> Either<T, V> right(V value) {
         return new Right<T, V>(value);
     }
@@ -30,54 +29,55 @@ public abstract class Either<T, V> {
     private Either() {
     }
 
-    @JsonIgnore
     public boolean isLeft() {
         return false;
     }
 
-    @JsonIgnore
     public boolean isRight() {
         return false;
     }
+
     public T getLeft() {
         throw new UnsupportedOperationException();
     }
+
     public V getRight() {
         throw new UnsupportedOperationException();
     }
 
     public static class Left<T, V> extends Either<T, V> {
+
         private final T value;
 
         public Left(T value) {
             this.value = value;
         }
+
         @Override
-        @JsonIgnore
         public boolean isLeft() {
             return true;
         }
+
         @Override
-        @JsonValue
         public T getLeft() {
             return value;
         }
     }
 
     public static class Right<T, V> extends Either<T, V> {
+
         private final V value;
 
         public Right(V value) {
             this.value = value;
         }
+
         @Override
-        @JsonIgnore
         public boolean isRight() {
             return true;
         }
 
         @Override
-        @JsonValue
         public V getRight() {
             return value;
         }

@@ -9,6 +9,7 @@ overlays
 examples
 pom.xml.releaseBackup
 release.properties
+setup.rc
 logs/
 .diskspool
 *.classpath
