@@ -22,6 +22,7 @@ import static org.testng.Assert.assertTrue;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.ning.billing.payment.plugin.api.RefundInfoPlugin;
 import com.ning.killbill.zuora.util.Either;
 
 import org.osgi.service.log.LogService;
@@ -31,6 +32,7 @@ import com.ning.billing.payment.api.PaymentMethodPlugin;
 import com.zuora.api.object.Account;
 import com.zuora.api.object.Invoice;
 import com.zuora.api.object.Payment;
+import com.zuora.api.object.Refund;
 import com.zuora.api.object.RefundInvoicePayment;
 import com.zuora.api.object.Subscription;
 
@@ -79,7 +81,7 @@ public class TestRefund extends TestZuoraApiBase {
                 //final Payment fetchedPayment = fetchedPaymentOrError.getRight();
 
                 BigDecimal refundAmount = new BigDecimal(5.00);
-                Either<ZuoraError, Void> createRefundOrError = zuoraApi.createRefund(connection, paymentId, kbPaymentId, refundAmount);
+                Either<ZuoraError, Refund> createRefundOrError = zuoraApi.createRefund(connection, paymentId, kbPaymentId, refundAmount);
                 assertTrue(createRefundOrError.isRight());
 
                 invPayOrError = zuoraApi.getRefundsForPayment(connection, paymentId);

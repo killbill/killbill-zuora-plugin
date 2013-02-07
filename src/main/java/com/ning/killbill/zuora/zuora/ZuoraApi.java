@@ -816,8 +816,7 @@ public class ZuoraApi {
         }
     }
 
-
-    public Either<ZuoraError, Void> createRefund(ZuoraConnection connection,
+    public Either<ZuoraError, Refund> createRefund(ZuoraConnection connection,
                                                  String paymentId,
                                                  String kbPaymentId,
                                                  BigDecimal refundAmount) {
@@ -851,10 +850,26 @@ public class ZuoraApi {
                                                                          refundOrError.getRight(), paymentId, invoiceOrError.getRight()));
                     return Either.left(adjOrError.getLeft());
                 }
-                return Either.right(null);
+                return getRefundById(connection, refundOrError.getRight());
             }
         } catch (Exception ex) {
             return Either.left(new ZuoraError(ZuoraError.ERROR_UNKNOWN, ex.getMessage()));
+        }
+    }
+
+    private Either<ZuoraError, Refund> getRefundById(final ZuoraConnection connection, final String refundId) {
+
+        final String query = stringTemplateLoader.load("getRefundFromId")
+                                                 .define("id", refundId)
+                                                 .build();
+        final Either<ZuoraError, Refund> refundOrError = connection.querySingle(query);
+
+        if (refundOrError.isLeft()) {
+            return Either.left(refundOrError.getLeft());
+        } else if (refundOrError.getRight() == null) {
+            return Either.left(new ZuoraError(ZuoraError.ERROR_NOTFOUND, "No refund found for id " + refundId));
+        } else {
+            return Either.right(refundOrError.getRight());
         }
     }
 

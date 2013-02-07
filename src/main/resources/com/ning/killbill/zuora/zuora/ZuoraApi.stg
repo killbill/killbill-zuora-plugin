@@ -151,6 +151,20 @@ getProcessedPaymentsForAccount(accountId) ::= <<
   from Payment where AccountId = '<accountId>' and Status = 'Processed'
 >>
 
+
+getRefundFromId(id) ::= <<
+  select
+    Id,
+    AccountId,
+    Amount,
+    GatewayResponse,
+    GatewayResponseCode,
+    RefundDate,
+    Status,
+    Type
+  from Refund  where Id = '<id>'
+>>
+
 getRefundInvoicePayment(invoicePaymentId)  ::= <<
     select
       InvoicePaymentId,

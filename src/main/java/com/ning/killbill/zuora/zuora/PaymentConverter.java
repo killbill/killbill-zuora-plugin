@@ -58,14 +58,6 @@ public class PaymentConverter implements Converter<Payment, PaymentInfoPlugin> {
             public String getGatewayErrorCode() {
                 return payment.getGatewayResponseCode();
             }
-            @Override
-            public String getExtFirstReferenceId() {
-                return payment.getReferenceId();
-            }
-            @Override
-            public String getExtSecondReferenceId() {
-                return payment.getSecondPaymentReferenceId();
-            }
         };
     }
 

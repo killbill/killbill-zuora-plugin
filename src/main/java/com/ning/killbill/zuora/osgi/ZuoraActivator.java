@@ -22,10 +22,12 @@ import java.util.Properties;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 import org.skife.config.ConfigurationObjectFactory;
 
+import com.ning.billing.osgi.api.OSGIKillbill;
 import com.ning.billing.payment.plugin.api.PaymentPluginApi;
 import com.ning.killbill.zuora.api.ZuoraPaymentPluginApi;
 import com.ning.killbill.zuora.zuora.ConnectionFactory;
@@ -42,14 +44,20 @@ public class ZuoraActivator implements BundleActivator {
 
     private volatile ServiceRegistration paymentInfoPluginRegistration;
 
+    private OSGIKillbill osgiKillbill;
+    private volatile ServiceReference<OSGIKillbill> osgiKillbillReference;
+
+
     @Override
     public void start(final BundleContext context) throws Exception {
         final ZuoraPaymentPluginApi zuoraPaymentPluginApi = initializePlugin(DEFAULT_INSTANCE_NAME);
+        fetchOSGIKIllbill(context);
         registerPaymentPluginApi(context, zuoraPaymentPluginApi);
     }
 
     @Override
     public void stop(final BundleContext context) throws Exception {
+        releaseOSGIKIllbill(context);
         unregisterPlaymentPluginApi(context);
     }
 
@@ -73,7 +81,7 @@ public class ZuoraActivator implements BundleActivator {
         final ZuoraApi api = new ZuoraApi(config, logService);
         final ConnectionFactory factory = new ConnectionFactory(config, api, logService);
         final ConnectionPool pool = new ConnectionPool(factory, config);
-        return  new ZuoraPaymentPluginApi(pool, api, logService, pluginInstanceName);
+        return  new ZuoraPaymentPluginApi(pool, api, logService, osgiKillbill, pluginInstanceName);
     }
 
     private void registerPaymentPluginApi(final BundleContext context, final PaymentPluginApi api) {
@@ -89,6 +97,22 @@ public class ZuoraActivator implements BundleActivator {
         if (paymentInfoPluginRegistration != null) {
             paymentInfoPluginRegistration.unregister();
             paymentInfoPluginRegistration = null;
+        }
+    }
+
+
+    private void fetchOSGIKIllbill(final BundleContext context) {
+        this.osgiKillbillReference = (ServiceReference<OSGIKillbill>) context.getServiceReference(OSGIKillbill.class.getName());
+        try {
+            this.osgiKillbill = context.getService(osgiKillbillReference);
+        } catch (Exception e) {
+            System.err.println("Error in HelloActivator: " + e.getLocalizedMessage());
+        }
+    }
+
+    private void releaseOSGIKIllbill(final BundleContext context) {
+        if (osgiKillbillReference != null) {
+            context.ungetService(osgiKillbillReference);
         }
     }
 }
