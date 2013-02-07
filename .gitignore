@@ -10,6 +10,7 @@ examples
 pom.xml.releaseBackup
 release.properties
 setup.rc
+run_tests.sh
 logs/
 .diskspool
 *.classpath
