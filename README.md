@@ -40,6 +40,6 @@ Tests
 -----
 
 In order to run the tests against the zuora sandbox, you must specify the 3 system properties:
-* killbill.payment.provider.test-zuora.userName=XXX
-* killbill.payment.provider.test-zuora.password=XXX
-* Dkillbill.payment.provider.test-zuora.url=https://apisandbox.zuora.com/apps/services/a/27.0
+* killbill.zuora.config.test-zuora.userName=XXX
+* killbill.zuora.config.test-zuora.password=XXX
+* killbill.zuora.config.test-zuora.url=https://apisandbox.zuora.com/apps/services/a/27.0
