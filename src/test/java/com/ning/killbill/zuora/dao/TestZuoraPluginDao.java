@@ -2,6 +2,7 @@ package com.ning.killbill.zuora.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -96,6 +97,11 @@ public class TestZuoraPluginDao {
 
         resPms = defaultZuoraPluginDao.getPaymentMethods(accountId);
         Assert.assertEquals(resPms.size(), 2);
+        final List<PaymentMethodEntity> expectedPms = new ArrayList<PaymentMethodEntity>();
+        expectedPms.add(pm1);
+        expectedPms.add(pm2);
+        checkExistingPaymentMethods(accountId, expectedPms);
+
 
         final String newZId1 = "newzid1";
         final PaymentMethodEntity newPm1 = new PaymentMethodEntity(pmId1, accountId, newZId1, false);
@@ -161,6 +167,76 @@ public class TestZuoraPluginDao {
         Assert.assertEquals(pms.size(), 0);
     }
 
+
+
+    @Test(groups = "slow", enabled = true)
+    public void testResetPaymentMethods() throws Exception {
+
+        final String accountId = UUID.randomUUID().toString();
+
+        final String pmId1 = UUID.randomUUID().toString();
+        final String zId1 = "zid1";
+        final PaymentMethodEntity pm1 = new PaymentMethodEntity(pmId1, accountId, zId1, true);
+
+        defaultZuoraPluginDao.insertPaymentMethod(pm1);
+        PaymentMethodEntity resPm1 = defaultZuoraPluginDao.getPaymentMethodById(pmId1);
+        Assert.assertEquals(resPm1, pm1);
+        Assert.assertEquals(resPm1.isDefault(), true);
+
+
+        List<PaymentMethodEntity> resPms = defaultZuoraPluginDao.getPaymentMethods(accountId);
+        Assert.assertEquals(resPms.size(), 1);
+        Assert.assertEquals(resPms.get(0), pm1);
+
+        final String pmId2 = UUID.randomUUID().toString();
+        final String zId2 = "zid2";
+        final PaymentMethodEntity pm2 = new PaymentMethodEntity(pmId2, accountId, zId2, false);
+
+        defaultZuoraPluginDao.insertPaymentMethod(pm2);
+        PaymentMethodEntity resPm2 = defaultZuoraPluginDao.getPaymentMethodById(pmId2);
+        Assert.assertEquals(resPm2, pm2);
+        Assert.assertEquals(resPm2.isDefault(), false);
+
+        resPms = defaultZuoraPluginDao.getPaymentMethods(accountId);
+        Assert.assertEquals(resPms.size(), 2);
+
+        /// Reset:
+        // pm1 is modified, pm2, is gone and we add pm3
+        final String newZId1 = "zid1";
+        final PaymentMethodEntity newPpm1 = new PaymentMethodEntity(pmId1, accountId, newZId1, false);
+
+        final String pmId3 = UUID.randomUUID().toString();
+        final String zId3 = "zid3";
+        final PaymentMethodEntity pm3 = new PaymentMethodEntity(pmId3, accountId, zId3, false);
+
+        final List<PaymentMethodEntity> newPms = new ArrayList<PaymentMethodEntity>();
+        newPms.add(newPpm1);
+        newPms.add(pm3);
+        defaultZuoraPluginDao.resetPaymentMethods(newPms);
+        checkExistingPaymentMethods(accountId, newPms);
+
+    }
+
+    private final List<PaymentMethodEntity> checkExistingPaymentMethods(final String accountId, final List<PaymentMethodEntity> expectedPms) {
+        final List<PaymentMethodEntity> resPms = defaultZuoraPluginDao.getPaymentMethods(accountId);
+        Assert.assertEquals(resPms.size(), expectedPms.size());
+
+        for (PaymentMethodEntity cur : resPms) {
+
+            boolean foundIt  = false;
+            for (PaymentMethodEntity exp : expectedPms) {
+                if (cur.getKbPaymentMethodId().equals(exp.getKbPaymentMethodId())) {
+                    Assert.assertEquals(cur, exp);
+                    foundIt = true;
+                    break;
+                }
+            }
+            if (!foundIt) {
+                Assert.fail("Failed to find payment method " + cur.getKbPaymentMethodId());
+            }
+        }
+        return resPms;
+    }
 
     private void cleanupTables() throws Exception {
         if (dataSource != null) {
