@@ -6,6 +6,7 @@ import org.osgi.service.log.LogService;
 
 import com.ning.billing.BillingExceptionBase;
 import com.ning.billing.account.api.Account;
+import com.ning.billing.account.api.AccountApiException;
 import com.ning.billing.osgi.api.OSGIKillbill;
 import com.ning.billing.payment.api.Payment;
 import com.ning.billing.payment.api.PaymentMethod;
@@ -30,7 +31,7 @@ public class DefaultKillbillApi {
             final Account account = osgiKillbill.getAccountUserApi().getAccountById(paymentMethod.getAccountId(), tenantContext);
             return account.getExternalKey();
         } catch (BillingExceptionBase e) {
-            logService.log(LogService.LOG_ERROR, "Failed to retrieve external key for id " + kbPaymentMethodId, e);
+            logService.log(LogService.LOG_ERROR, "Failed to retrieve external key for payment methodId=" + kbPaymentMethodId, e);
             throw new PaymentPluginApiException(ERROR_API_KILLBILL, e);
         }
     }
@@ -41,9 +42,21 @@ public class DefaultKillbillApi {
             final Account account = osgiKillbill.getAccountUserApi().getAccountById(payment.getAccountId(), tenantContext);
             return account.getExternalKey();
         } catch (BillingExceptionBase e) {
-            logService.log(LogService.LOG_ERROR, "Failed to retrieve external key for id " + kbPaymentId, e);
+            logService.log(LogService.LOG_ERROR, "Failed to retrieve external key for paymentId=" + kbPaymentId, e);
             throw new PaymentPluginApiException(ERROR_API_KILLBILL, e);
         }
     }
+
+    public String getAccountExternalKeyFromAccountId(final UUID kbAccountId, final TenantContext tenantContext) throws PaymentPluginApiException {
+        final Account account;
+        try {
+            account = osgiKillbill.getAccountUserApi().getAccountById(kbAccountId, tenantContext);
+        } catch (AccountApiException e) {
+            logService.log(LogService.LOG_ERROR, "Failed to retrieve external key for accountId=" + kbAccountId, e);
+            throw new PaymentPluginApiException(ERROR_API_KILLBILL, e);
+        }
+        return account.getExternalKey();
+    }
+
 
 }

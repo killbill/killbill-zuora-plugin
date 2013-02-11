@@ -30,6 +30,8 @@ import org.skife.config.ConfigurationObjectFactory;
 import com.ning.billing.osgi.api.OSGIKillbill;
 import com.ning.billing.payment.plugin.api.PaymentPluginApi;
 import com.ning.killbill.zuora.api.ZuoraPaymentPluginApi;
+import com.ning.killbill.zuora.dao.DefaultZuoraPluginDao;
+import com.ning.killbill.zuora.dao.ZuoraPluginDao;
 import com.ning.killbill.zuora.zuora.ConnectionFactory;
 import com.ning.killbill.zuora.zuora.ConnectionPool;
 import com.ning.killbill.zuora.zuora.ZuoraApi;
@@ -81,7 +83,8 @@ public class ZuoraActivator implements BundleActivator {
         final ZuoraApi api = new ZuoraApi(config, logService);
         final ConnectionFactory factory = new ConnectionFactory(config, api, logService);
         final ConnectionPool pool = new ConnectionPool(factory, config);
-        return  new ZuoraPaymentPluginApi(pool, api, logService, osgiKillbill, pluginInstanceName);
+        final ZuoraPluginDao zuoraPluginDao = new DefaultZuoraPluginDao(osgiKillbill.getDataSource());
+        return  new ZuoraPaymentPluginApi(pool, api, logService, osgiKillbill, zuoraPluginDao, pluginInstanceName);
     }
 
     private void registerPaymentPluginApi(final BundleContext context, final PaymentPluginApi api) {

@@ -17,100 +17,44 @@
 package com.ning.killbill.zuora.api;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import org.osgi.service.log.LogService;
 
-import com.ning.billing.account.api.Account;
 import com.ning.billing.osgi.api.OSGIKillbill;
 import com.ning.billing.payment.api.PaymentMethodPlugin;
 import com.ning.billing.payment.plugin.api.PaymentInfoPlugin;
+import com.ning.billing.payment.plugin.api.PaymentMethodInfoPlugin;
 import com.ning.billing.payment.plugin.api.PaymentPluginApi;
 import com.ning.billing.payment.plugin.api.PaymentPluginApiException;
 import com.ning.billing.payment.plugin.api.RefundInfoPlugin;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.TenantContext;
-import com.ning.killbill.zuora.killbill.DefaultKillbillApi;
-import com.ning.killbill.zuora.method.CreditCardProperties;
-import com.ning.killbill.zuora.method.PaymentMethodProperties;
+import com.ning.killbill.zuora.dao.ZuoraPluginDao;
+import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 import com.ning.killbill.zuora.util.Either;
-import com.ning.killbill.zuora.zuora.AccountConverter;
 import com.ning.killbill.zuora.zuora.ConnectionPool;
-import com.ning.killbill.zuora.zuora.Converter;
-import com.ning.killbill.zuora.zuora.IdentityConverter;
-import com.ning.killbill.zuora.zuora.PaymentConverter;
-import com.ning.killbill.zuora.zuora.PaymentMethodConverter;
-import com.ning.killbill.zuora.zuora.PoolException;
+import com.ning.killbill.zuora.zuora.PaymentMethodInfoConverter;
 import com.ning.killbill.zuora.zuora.ZuoraApi;
 import com.ning.killbill.zuora.zuora.ZuoraConnection;
 import com.ning.killbill.zuora.zuora.ZuoraError;
-import com.ning.killbill.zuora.zuora.ZuoraErrorConverter;
-import com.ning.killbill.zuora.zuora.RefundConverter;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
 import com.zuora.api.object.PaymentMethod;
 
-public class ZuoraPaymentPluginApi implements PaymentPluginApi {
+public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPluginApi {
 
-    private static <S1, S2, T1, T2> Either<T1, T2>  convert(final Either<S1, S2> source, final Converter<S1, T1> converter1, final Converter<S2, T2> converter2) {
-        if (source.isLeft()) {
-            return Either.left(converter1.convert(source.getLeft()));
-        } else {
-            return Either.right(converter2 == null ? null : converter2.convert(source.getRight()));
-        }
+
+    public ZuoraPaymentPluginApi(final ConnectionPool pool, final ZuoraApi api, final LogService logService, final OSGIKillbill osgiKillbill,
+                                 final ZuoraPluginDao zuoraPluginDao, final String instanceName) {
+        super(pool, api, logService, osgiKillbill, zuoraPluginDao, instanceName);
     }
 
-    private static <S1, S2, T1, T2> Either<T1, List<T2>> convertList(final Either<S1, List<S2>> source, final Converter<S1, T1> converter1, final Converter<S2, T2> converter2) {
-        if (source.isLeft()) {
-            return Either.left(converter1.convert(source.getLeft()));
-        } else {
-            final List<T2> objs = new ArrayList<T2>();
-            for (final S2 sourceObj : source.getRight()) {
-                objs.add(converter2.convert(sourceObj));
-            }
-            return Either.right(objs);
-        }
-    }
-
-    private static interface ConnectionCallback<T> {
-
-        T withConnection(ZuoraConnection connection);
-    }
-
-    private final ZuoraErrorConverter errorConverter = new ZuoraErrorConverter();
-    private final PaymentConverter paymentConverter = new PaymentConverter();
-    private final RefundConverter refundConverter = new RefundConverter();
-    private final IdentityConverter<String> stringConverter = new IdentityConverter<String>();
-    private final ConnectionPool pool;
-    private final ZuoraApi api;
-    private final String instanceName;
-    private final LogService logService;
-    private final DefaultKillbillApi killbillApi;
-
-    public ZuoraPaymentPluginApi(final ConnectionPool pool, final ZuoraApi api, final LogService logService, final OSGIKillbill osgiKillbill, final String instanceName) {
-        this.pool = pool;
-        this.api = api;
-        this.instanceName = instanceName;
-        this.logService = logService;
-        this.killbillApi = new DefaultKillbillApi(osgiKillbill, logService);
-    }
-
-    private <T> T withConnection(final ConnectionCallback<T> callback) {
-        final ZuoraConnection connection = pool.borrowFromPool();
-
-        try {
-            return callback.withConnection(connection);
-        } finally {
-            if (connection != null) {
-                try {
-                    pool.returnToPool(connection);
-                } catch (PoolException ex) {
-                    logService.log(LogService.LOG_INFO, "Error while returning a zuora connection to the pool", ex);
-                }
-            }
-        }
-    }
 
     @Override
     public String getName() {
@@ -245,5 +189,46 @@ public class ZuoraPaymentPluginApi implements PaymentPluginApi {
         }
     }
 
+    @Override
+    public List<PaymentMethodInfoPlugin> getPaymentMethods(final UUID kbAccountId, final boolean refreshFromGateway, final CallContext context) throws PaymentPluginApiException {
 
+        final String accountExternalKey = killbillApi.getAccountExternalKeyFromAccountId(kbAccountId, context);
+        final Either<ZuoraError, List<PaymentMethodInfoPlugin>> result = withConnection(new ConnectionCallback<Either<ZuoraError, List<PaymentMethodInfoPlugin>>>() {
+            @Override
+            public Either<ZuoraError, List<PaymentMethodInfoPlugin>> withConnection(final ZuoraConnection connection) {
+                final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = api.getByAccountName(connection, accountExternalKey);
+
+                if (accountOrError.isLeft()) {
+                    return convert(accountOrError, errorConverter, null);
+                } else {
+
+                    final List<PaymentMethodEntity> pms = zuoraPluginDao.getPaymentMethods(kbAccountId.toString());
+                    final PaymentMethodInfoConverter converter = new PaymentMethodInfoConverter(kbAccountId, accountOrError.getRight().getDefaultPaymentMethodId(), pms);
+
+                    final com.zuora.api.object.Account account = accountOrError.getRight();
+                    final Either<ZuoraError, List<PaymentMethod>> paymentMethodsOrError = api.getPaymentMethodsForAccount(connection, account);
+
+                    return convertList(paymentMethodsOrError, errorConverter, converter);
+                }
+            }
+        });
+        if (result.isLeft()) {
+            throw new PaymentPluginApiException(result.getLeft().getType(), result.getLeft().getMessage());
+        } else {
+            return result.getRight();
+        }
+
+    }
+
+    @Override
+    public void resetPaymentMethods(final List<PaymentMethodInfoPlugin> paymentMethods) throws PaymentPluginApiException {
+
+        final List<PaymentMethodEntity> restInput = ImmutableList.<PaymentMethodEntity>copyOf(Collections2.transform(paymentMethods, new Function<PaymentMethodInfoPlugin, PaymentMethodEntity>() {
+            @Override
+            public PaymentMethodEntity apply(@Nullable final PaymentMethodInfoPlugin input) {
+                return new PaymentMethodEntity(input.getPaymentMethodId().toString(), input.getAccountId().toString(), input.getExternalPaymentMethodId(), input.isDefault());
+            }
+        }));
+        zuoraPluginDao.resetPaymentMethods(restInput);
+    }
 }
