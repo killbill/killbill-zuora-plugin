@@ -10,9 +10,9 @@
         </provider>
         <class>com.ning.killbill.zuora.dao.entities.PaymentMethodEntity</class>
         <properties>
-            <!-- In order to automatically create the tables -->
             <property name="openjpa.DataCache" value="false"/>
             <property name="openjpa.QueryCache" value="false"/>
+            <!-- In order to automatically create the tables -->
             <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema"/>
             <property name="openjpa.Log" value="SQL=TRACE"/>
         </properties>

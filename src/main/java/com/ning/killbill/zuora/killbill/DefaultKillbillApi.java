@@ -48,6 +48,11 @@ public class DefaultKillbillApi {
     }
 
     public String getAccountExternalKeyFromAccountId(final UUID kbAccountId, final TenantContext tenantContext) throws PaymentPluginApiException {
+        final Account account = getAccountFromAccountId(kbAccountId, tenantContext);
+        return account.getExternalKey();
+    }
+
+    public Account getAccountFromAccountId(final UUID kbAccountId, final TenantContext tenantContext) throws PaymentPluginApiException {
         final Account account;
         try {
             account = osgiKillbill.getAccountUserApi().getAccountById(kbAccountId, tenantContext);
@@ -55,8 +60,6 @@ public class DefaultKillbillApi {
             logService.log(LogService.LOG_ERROR, "Failed to retrieve external key for accountId=" + kbAccountId, e);
             throw new PaymentPluginApiException(ERROR_API_KILLBILL, e);
         }
-        return account.getExternalKey();
+        return account;
     }
-
-
 }

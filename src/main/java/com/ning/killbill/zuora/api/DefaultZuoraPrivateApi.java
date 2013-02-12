@@ -1,6 +1,7 @@
 package com.ning.killbill.zuora.api;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.osgi.service.log.LogService;
 
@@ -32,7 +33,9 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
     }
 
     @Override
-    public String createPaymentProviderAccount(final Account account, final CallContext context) throws PaymentPluginApiException {
+    public String createPaymentProviderAccount(final UUID accountId, final TenantContext context) throws PaymentPluginApiException {
+
+        final Account account = killbillApi.getAccountFromAccountId(accountId, context);
         final Either<ZuoraError, String> result = withConnection(new ConnectionCallback<Either<ZuoraError, String>>() {
             @Override
             public Either<ZuoraError, String> withConnection(final ZuoraConnection connection) {
@@ -48,11 +51,13 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
     }
 
     @Override
-    public List<PaymentMethodPlugin> getPaymentMethodDetails(final String screenName, final TenantContext context) throws PaymentPluginApiException {
+    public List<PaymentMethodPlugin> getPaymentMethodDetails(final UUID accountId, final TenantContext context) throws PaymentPluginApiException {
+
+        final String externalKey = killbillApi.getAccountExternalKeyFromAccountId(accountId, context);
         final Either<ZuoraError, List<PaymentMethodPlugin>> result =  withConnection(new ConnectionCallback<Either<ZuoraError, List<PaymentMethodPlugin>>>() {
             @Override
             public Either<ZuoraError, List<PaymentMethodPlugin>> withConnection(final ZuoraConnection connection) {
-                final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = api.getByAccountName(connection, screenName);
+                final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = api.getByAccountName(connection, externalKey);
 
                 if (accountOrError.isLeft()) {
                     return convert(accountOrError, errorConverter, null);
@@ -75,8 +80,9 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
 
 
     @Override
-    public PaymentMethodPlugin getPaymentMethodDetail(final String accountKey, final String externalPaymentId, final TenantContext context)
+    public PaymentMethodPlugin getPaymentMethodDetail(final UUID accountId, final String externalPaymentId, final TenantContext context)
             throws PaymentPluginApiException {
+
         final Either<ZuoraError, PaymentMethodPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentMethodPlugin>>() {
             @Override
             public Either<ZuoraError, PaymentMethodPlugin> withConnection(final ZuoraConnection connection) {
@@ -108,15 +114,16 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
 
 
     @Override
-    public void updatePaymentMethod(final String accountKey, final PaymentMethodPlugin paymentMethodProps, final CallContext context) throws PaymentPluginApiException {
+    public void updatePaymentMethod(final UUID accountId, final PaymentMethodPlugin paymentMethodProps, final TenantContext context) throws PaymentPluginApiException {
 
+        final String externalKey = killbillApi.getAccountExternalKeyFromAccountId(accountId, context);
         final String paymentMethodType = paymentMethodProps.getValueString(PaymentMethodProperties.TYPE);
         if (CreditCardProperties.TYPE_VALUE.equals(paymentMethodType)) {
 
             final Either<ZuoraError, PaymentMethodPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentMethodPlugin>>() {
                 @Override
                 public Either<ZuoraError, PaymentMethodPlugin> withConnection(final ZuoraConnection connection) {
-                    final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = api.getByAccountName(connection, accountKey);
+                    final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = api.getByAccountName(connection, externalKey);
 
                     if (accountOrError.isLeft()) {
                         return convert(accountOrError, errorConverter, null);

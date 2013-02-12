@@ -20,6 +20,8 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Properties;
 
+import javax.servlet.http.HttpServlet;
+
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -29,38 +31,57 @@ import org.skife.config.ConfigurationObjectFactory;
 
 import com.ning.billing.osgi.api.OSGIKillbill;
 import com.ning.billing.payment.plugin.api.PaymentPluginApi;
+import com.ning.killbill.zuora.api.DefaultZuoraPrivateApi;
 import com.ning.killbill.zuora.api.ZuoraPaymentPluginApi;
+import com.ning.killbill.zuora.api.ZuoraPrivateApi;
 import com.ning.killbill.zuora.dao.DefaultZuoraPluginDao;
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
+import com.ning.killbill.zuora.http.ZuoraHttpServlet;
 import com.ning.killbill.zuora.zuora.ConnectionFactory;
 import com.ning.killbill.zuora.zuora.ConnectionPool;
 import com.ning.killbill.zuora.zuora.ZuoraApi;
 import com.ning.killbill.zuora.zuora.setup.ZuoraConfig;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 
 public class ZuoraActivator implements BundleActivator {
 
+    public final static String PLUGIN_NAME = "zuora";
+
     private final static String DEFAULT_INSTANCE_NAME = "default";
-    private final static String PLUGIN_NAME = "zuora";
 
     private volatile ServiceRegistration paymentInfoPluginRegistration;
+    private volatile ServiceRegistration httpServletServiceRegistration;
 
     private OSGIKillbill osgiKillbill;
     private volatile ServiceReference<OSGIKillbill> osgiKillbillReference;
 
 
+    private ZuoraConfig config;
+    private LogService logService;
+    private ObjectMapper mapper;
+    private ZuoraApi api;
+    private ConnectionFactory factory;
+    private ConnectionPool pool;
+    private ZuoraPluginDao zuoraPluginDao;
+    private ZuoraPaymentPluginApi zuoraPaymentPluginApi;
+    private ZuoraHttpServlet zuoraHttpServlet;
+    private ZuoraPrivateApi zuoraPrivateApi;
+
+
     @Override
     public void start(final BundleContext context) throws Exception {
-        final ZuoraPaymentPluginApi zuoraPaymentPluginApi = initializePlugin(DEFAULT_INSTANCE_NAME);
         fetchOSGIKIllbill(context);
         registerPaymentPluginApi(context, zuoraPaymentPluginApi);
+        registerServlet(context, zuoraHttpServlet);
     }
 
     @Override
     public void stop(final BundleContext context) throws Exception {
         releaseOSGIKIllbill(context);
         unregisterPlaymentPluginApi(context);
+        unregisterServlet(context);
     }
 
     private final ZuoraConfig readConfigFromSystemProperties(final String instanceName) {
@@ -75,16 +96,33 @@ public class ZuoraActivator implements BundleActivator {
         return null;
     }
 
-    private ZuoraPaymentPluginApi initializePlugin(final String pluginInstanceName) {
+    private void initializePlugin(final String pluginInstanceName) {
 
-        final ZuoraConfig config = readConfigFromSystemProperties(pluginInstanceName);
-        final LogService logService = getLogService();
+        config = readConfigFromSystemProperties(pluginInstanceName);
+        logService = getLogService();
 
-        final ZuoraApi api = new ZuoraApi(config, logService);
-        final ConnectionFactory factory = new ConnectionFactory(config, api, logService);
-        final ConnectionPool pool = new ConnectionPool(factory, config);
-        final ZuoraPluginDao zuoraPluginDao = new DefaultZuoraPluginDao(osgiKillbill.getDataSource());
-        return  new ZuoraPaymentPluginApi(pool, api, logService, osgiKillbill, zuoraPluginDao, pluginInstanceName);
+        mapper = new ObjectMapper();
+        api = new ZuoraApi(config, logService);
+        factory = new ConnectionFactory(config, api, logService);
+        pool = new ConnectionPool(factory, config);
+        zuoraPluginDao = new DefaultZuoraPluginDao(osgiKillbill.getDataSource());
+        zuoraPaymentPluginApi = new ZuoraPaymentPluginApi(pool, api, logService, osgiKillbill, zuoraPluginDao, pluginInstanceName);
+        zuoraPrivateApi = new DefaultZuoraPrivateApi(pool, api, logService, osgiKillbill, zuoraPluginDao, pluginInstanceName);
+        zuoraHttpServlet =  new ZuoraHttpServlet(zuoraPrivateApi, zuoraPluginDao, mapper);
+    }
+
+    private void registerServlet(final BundleContext context, final ZuoraHttpServlet servlet) {
+        final Hashtable<String, String> properties = new Hashtable<String, String>();
+        properties.put("killbill.pluginName", PLUGIN_NAME);
+        httpServletServiceRegistration = context.registerService(HttpServlet.class.getName(), servlet, properties);
+
+    }
+
+    private void unregisterServlet(final BundleContext context) {
+        if (httpServletServiceRegistration != null) {
+            httpServletServiceRegistration.unregister();
+            httpServletServiceRegistration = null;
+        }
     }
 
     private void registerPaymentPluginApi(final BundleContext context, final PaymentPluginApi api) {
@@ -95,6 +133,8 @@ public class ZuoraActivator implements BundleActivator {
 
         this.paymentInfoPluginRegistration = context.registerService(PaymentPluginApi.class.getName(), api, props);
     }
+
+
 
     private void unregisterPlaymentPluginApi(final BundleContext context) {
         if (paymentInfoPluginRegistration != null) {

@@ -1,6 +1,7 @@
 package com.ning.killbill.zuora.api;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.ning.billing.account.api.Account;
 import com.ning.billing.payment.api.PaymentMethodPlugin;
@@ -18,45 +19,45 @@ public interface ZuoraPrivateApi {
 
     /**
      *
-     * @param account the Killbill Account info
+     * @param accountId the Killbill accountId
      * @param context a Killbill context
      * @return the zuora accountId
      * @throws PaymentPluginApiException
      */
-    public String createPaymentProviderAccount(Account account, CallContext context)
+    public String createPaymentProviderAccount(UUID accountId, TenantContext context)
             throws PaymentPluginApiException;
 
     /**
      *
-     * @param accountKey the accountKey (that zuora knows about)
+     * @param accountId the Killbill accountId
      * @param context    a killbill context
      * @return all the payment methods returned by Zuora for that account
      * @throws PaymentPluginApiException
      */
-    public List<PaymentMethodPlugin> getPaymentMethodDetails(String accountKey, TenantContext context)
+    public List<PaymentMethodPlugin> getPaymentMethodDetails(UUID accountId, TenantContext context)
             throws PaymentPluginApiException;
 
     /**
      *
-     * @param accountKey  the accountKey (that zuora knows about)
+     * @param accountId the Killbill accountId
      * @param paymentMethodId the paymentMethodId  (that zuora knows about)
      * @param context a Killbill context
      * @return the paymentMethod info associated with that externalPaymentMethodId
      * @throws PaymentPluginApiException
      */
-    public PaymentMethodPlugin getPaymentMethodDetail(String accountKey, String paymentMethodId, TenantContext context)
+    public PaymentMethodPlugin getPaymentMethodDetail(UUID accountId, String paymentMethodId, TenantContext context)
             throws PaymentPluginApiException;
 
 
     /**
      * Updates the DEFAULT zuora payment method
      *
-     * @param accountKey   the accountKey (that zuora knows about)
+     * @param accountId the Killbill accountId
      * @param paymentMethodProps the new payment info for that paymentMethod
      * @param context
      * @throws PaymentPluginApiException
      */
-    public void updatePaymentMethod(String accountKey, PaymentMethodPlugin paymentMethodProps, CallContext context)
+    public void updatePaymentMethod(UUID accountId, PaymentMethodPlugin paymentMethodProps, TenantContext context)
             throws PaymentPluginApiException;
 
 
