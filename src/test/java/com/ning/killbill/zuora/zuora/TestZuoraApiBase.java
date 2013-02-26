@@ -71,9 +71,6 @@ public class TestZuoraApiBase {
     protected Account account;
     protected LogService logService;
 
-    protected final PaymentConverter paymentConverter = new PaymentConverter();
-    protected final AccountConverter accountConverter = new AccountConverter();
-
     private final static String instanceName = "test-zuora";
 
     private static Properties loadSystemPropertiesFromClasspath(final String resource) {
