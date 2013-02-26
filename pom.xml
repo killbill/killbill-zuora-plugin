@@ -26,7 +26,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ning.killbill</groupId>
     <artifactId>zuora-plugin</artifactId>
-    <packaging>jar</packaging>
+    <packaging>bundle</packaging>
     <version>1.0.0-SNAPSHOT</version>
     <name>zuora-plugin</name>
 
@@ -255,6 +255,76 @@
                     </dependency>
                 </dependencies>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-Activator>com.ning.killbill.zuora.osgi.ZuoraActivator</Bundle-Activator>
+                        <Import-Package>
+                            <!-- maven-bundle-plugin does not seem to detect that the library is using OSGIKillbill, this is annoying... -->
+                            *;resolution:=optional,com.ning.billing.osgi.api
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>manifest</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <id>zuora-plugin-withdep</id>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <createSourcesJar>true</createSourcesJar>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>jar-with-dependencies</shadedClassifierName>
+                            <filters>
+                                <filter>
+                                    <artifact>${project.groupId}:${project.artifactId}</artifact>
+                                    <excludes>
+                                        <exclude>log4j.xml</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>assemble-zuora-plugin</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>src/main/assembly/assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 </project>

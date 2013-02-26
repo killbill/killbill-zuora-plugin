@@ -50,6 +50,10 @@ import com.ning.killbill.zuora.zuora.setup.ZuoraConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 
+
+/*
+   pluginName = com.ning.killbill.zuora-plugin
+ */
 public class ZuoraActivator extends KillbillActivatorBase {
 
     public final static String PLUGIN_NAME = "zuora";

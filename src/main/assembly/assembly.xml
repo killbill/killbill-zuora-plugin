@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+========================================================================
+=
+= This assembly requires a property set in the pom of the project to define
+= the name of the webapp. This should be in the pulse-build profile.
+=
+=       <properties>
+=           <jettyWebroot>root</jettyWebroot>
+=       </properties>
+=
+========================================================================
+-->
+
+<assembly>
+    <!-- Since assembly plugin 2.2 this has to have an id, so use the appendAssemblyId parameter to the assembly
+	     plugin to prevent the id from being used as a classifier for the artifact -->
+    <id>zuora-plugin-archive</id>
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <files>
+        <file>
+            <source>target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</source>
+            <outputDirectory>/java/${project.artifactId}/${project.version}</outputDirectory>
+            <filtered>true</filtered>
+        </file>
+        <file>
+            <source>src/main/assembly/killbill.properties</source>
+            <outputDirectory>/java/${project.artifactId}/${project.version}</outputDirectory>
+            <filtered>true</filtered>
+        </file>
+    </files>
+</assembly>
