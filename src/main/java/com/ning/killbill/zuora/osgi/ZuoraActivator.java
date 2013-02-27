@@ -60,10 +60,6 @@ public class ZuoraActivator extends KillbillActivatorBase {
 
     private final static String DEFAULT_INSTANCE_NAME = "default";
 
-    private volatile ServiceRegistration paymentInfoPluginRegistration;
-    private volatile ServiceRegistration httpServletServiceRegistration;
-
-
     private ZuoraConfig config;
     private ObjectMapper mapper;
     private ZuoraApi api;
@@ -74,6 +70,7 @@ public class ZuoraActivator extends KillbillActivatorBase {
     private ZuoraHttpServlet zuoraHttpServlet;
     private ZuoraPrivateApi zuoraPrivateApi;
 
+    private static ZuoraPrivateApi zuoraPrivateApiStaticHack = null;
 
     @Override
     public void start(final BundleContext context) throws Exception {
@@ -90,6 +87,9 @@ public class ZuoraActivator extends KillbillActivatorBase {
 
         zuoraPaymentPluginApi = new ZuoraPaymentPluginApi(pool, api, logService, killbillAPI, zuoraPluginDao, DEFAULT_INSTANCE_NAME);
         zuoraPrivateApi = new DefaultZuoraPrivateApi(pool, api, logService, killbillAPI, zuoraPluginDao, DEFAULT_INSTANCE_NAME);
+
+        zuoraPrivateApiStaticHack = zuoraPrivateApi;
+
         zuoraHttpServlet =  new ZuoraHttpServlet(zuoraPrivateApi, zuoraPluginDao, mapper);
 
         registerPaymentPluginApi(context, zuoraPaymentPluginApi);
@@ -99,6 +99,7 @@ public class ZuoraActivator extends KillbillActivatorBase {
     @Override
     public void stop(final BundleContext context) throws Exception {
         super.stop(context);
+        zuoraPrivateApiStaticHack = null;
     }
 
     @Override
@@ -124,5 +125,10 @@ public class ZuoraActivator extends KillbillActivatorBase {
         final Dictionary props = new Hashtable();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
         registrar.registerService(context, PaymentPluginApi.class, api, props);
+    }
+
+
+    public static ZuoraPrivateApi getZuoraPrivateApi() {
+        return zuoraPrivateApiStaticHack;
     }
 }

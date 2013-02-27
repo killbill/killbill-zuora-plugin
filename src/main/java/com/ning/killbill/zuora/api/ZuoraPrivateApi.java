@@ -57,8 +57,16 @@ public interface ZuoraPrivateApi {
      * @param context
      * @throws PaymentPluginApiException
      */
-    public void updatePaymentMethod(UUID accountId, PaymentMethodPlugin paymentMethodProps, TenantContext context)
+    public void updateDefaultPaymentMethod(UUID accountId, PaymentMethodPlugin paymentMethodProps, TenantContext context)
             throws PaymentPluginApiException;
 
 
+    /**
+     *
+     * @param paymentMethodId the kb payment method Id
+     * @return
+     * @throws PaymentPluginApiException
+     */
+    public String getExternalPaymentMethodId(UUID paymentMethodId)
+            throws PaymentPluginApiException;
 }

@@ -12,6 +12,7 @@ import com.ning.billing.payment.plugin.api.PaymentPluginApiException;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.TenantContext;
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
+import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 import com.ning.killbill.zuora.method.CreditCardProperties;
 import com.ning.killbill.zuora.method.PaymentMethodProperties;
 import com.ning.killbill.zuora.util.Either;
@@ -114,7 +115,7 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
 
 
     @Override
-    public void updatePaymentMethod(final UUID accountId, final PaymentMethodPlugin paymentMethodProps, final TenantContext context) throws PaymentPluginApiException {
+    public void updateDefaultPaymentMethod(final UUID accountId, final PaymentMethodPlugin paymentMethodProps, final TenantContext context) throws PaymentPluginApiException {
 
         final String externalKey = killbillApi.getAccountExternalKeyFromAccountId(accountId, context);
         final String paymentMethodType = paymentMethodProps.getValueString(PaymentMethodProperties.TYPE);
@@ -148,5 +149,14 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
             return;
         }
         throw new PaymentPluginApiException(ZuoraError.ERROR_UNSUPPORTED, "Payment method " + paymentMethodType + " cannot be updated by the Zuora plugin");
+    }
+
+    @Override
+    public String getExternalPaymentMethodId(final UUID paymentMethodId) throws PaymentPluginApiException {
+        final PaymentMethodEntity entity = zuoraPluginDao.getPaymentMethodById(paymentMethodId.toString());
+        if (entity != null) {
+            return entity.getZuoraPaymentMethodId();
+        }
+        return null;
     }
 }
