@@ -1,0 +1,59 @@
+group PaymentMethodEntitySqlDao;
+
+getById() ::= <<
+  select
+    kb_pm_id
+    , kb_account_id
+    , z_pm_id
+    , z_default
+  from _zuora_payment_methods
+  where
+  kb_pm_id = :kbPmId
+  ;
+>>
+
+getByAccountId() ::= <<
+  select
+    kb_pm_id
+    , kb_account_id
+    , z_pm_id
+    , z_default
+  from _zuora_payment_methods
+  where
+  kb_account_id = :kbAccountId
+  ;
+>>
+
+insert() ::= <<
+  insert into _zuora_payment_methods (
+     kb_pm_id
+     , kb_account_id
+     , z_pm_id
+     , z_default
+     , last_updated
+  ) values (
+      :kbPmId
+      , :kbAccountId
+      , :zPmId
+      , :zDefault
+      , NOW()
+  );
+>>
+
+update() ::= <<
+  update _zuora_payment_methods
+  set
+    z_pm_id = :zPmId
+    , z_default = :zDefault
+    , last_updated = NOW()
+  where
+    kb_pm_id = :kbPmId
+  ;
+>>
+
+deleteById() ::= <<
+  delete from _zuora_payment_methods
+  where
+    kb_pm_id = :kbPmId
+  ;
+>>

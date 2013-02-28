@@ -24,6 +24,10 @@ public interface ZuoraConfig {
     
     static final String ZuoraConfigPropertyPrefix = "killbill.zuora.config.";
 
+    @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.useJPADAO")
+    @Default("false")
+    public boolean useJPADAOImplementation();
+
     @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.userName")
     @Default("foo")
     public String getZuoraUserName();
@@ -71,5 +75,6 @@ public interface ZuoraConfig {
     @Config(ZuoraConfigPropertyPrefix + "${pluginInstanceName}.shouldCheckForStatePayment")
     @Default("true")
     public boolean shouldCheckForStatePayment();
+
 
 }

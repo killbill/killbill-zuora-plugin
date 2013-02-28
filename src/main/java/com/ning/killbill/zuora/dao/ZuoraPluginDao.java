@@ -6,6 +6,8 @@ import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 
 public interface ZuoraPluginDao {
 
+    public void insertPaymentMethod(final PaymentMethodEntity pm);
+
     public PaymentMethodEntity getPaymentMethodById(final String kbPaymentMethodId);
 
     public List<PaymentMethodEntity> getPaymentMethods(final String kbAccountId);

@@ -58,6 +58,7 @@
             <groupId>com.ning.billing</groupId>
             <artifactId>killbill-api</artifactId>
             <version>${killbill.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.ning.billing</groupId>
@@ -147,12 +148,18 @@
             <version>3.2.1</version>
         </dependency>
         <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi</artifactId>
+            <version>2.39.1</version>
+        </dependency>
+
+        <!-- TEST SCOPE -->
+        <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.17</version>
-            <scope>runtime</scope>
+            <scope>test</scope>
         </dependency>
-        <!-- TEST SCOPE -->
         <dependency>
             <groupId>com.mchange</groupId>
             <artifactId>c3p0</artifactId>
@@ -250,7 +257,7 @@
                 <dependencies>
                     <dependency>
                         <groupId>org.apache.openjpa</groupId>
-                        <artifactId>openjpa</artifactId>
+                        <artifactId>openjpa-all</artifactId>
                         <version>2.2.1</version>
                     </dependency>
                 </dependencies>
@@ -263,9 +270,9 @@
                 <configuration>
                     <instructions>
                         <Bundle-Activator>com.ning.killbill.zuora.osgi.ZuoraActivator</Bundle-Activator>
+                        <Export-Package></Export-Package>
                         <Import-Package>
-                            <!-- maven-bundle-plugin does not seem to detect that the library is using OSGIKillbill, this is annoying... -->
-                            *;resolution:=optional,com.ning.billing.osgi.api
+                            *;resolution:=optional
                         </Import-Package>
                     </instructions>
                 </configuration>

@@ -65,11 +65,11 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     @Override
     public PaymentInfoPlugin processPayment(final UUID kbPaymentId, final UUID kbPaymentMethodId, final BigDecimal amount, final CallContext context) throws PaymentPluginApiException {
 
-        final String accountExternalKey = killbillApi.getAccountExternalKeyFromPaymentMethodId(kbPaymentMethodId, context);
+        final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromPaymentMethodId(kbPaymentMethodId, context);
         final Either<ZuoraError, PaymentInfoPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentInfoPlugin>>() {
             @Override
             public Either<ZuoraError, PaymentInfoPlugin> withConnection(final ZuoraConnection connection) {
-                return convert(api.processPayment(connection, accountExternalKey, amount, kbPaymentId.toString()), errorConverter, paymentConverter);
+                return convert(zuoraApi.processPayment(connection, accountExternalKey, amount, kbPaymentId.toString()), errorConverter, paymentConverter);
             }
         });
         if (result.isLeft()) {
@@ -85,7 +85,7 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
         final Either<ZuoraError, PaymentInfoPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentInfoPlugin>>() {
             @Override
             public Either<ZuoraError, PaymentInfoPlugin> withConnection(final ZuoraConnection connection) {
-                return convert(api.getPaymentById(connection, kbPaymentId.toString()), errorConverter, paymentConverter);
+                return convert(zuoraApi.getPaymentById(connection, kbPaymentId.toString()), errorConverter, paymentConverter);
             }
         });
         if (result.isLeft()) {
@@ -98,17 +98,17 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     @Override
     public RefundInfoPlugin processRefund(final UUID kbPaymentId, final BigDecimal refundAmount, final CallContext context) throws PaymentPluginApiException {
 
-        final String accountExternalKey = killbillApi.getAccountExternalKeyFromPaymentId(kbPaymentId, context);
+        final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromPaymentId(kbPaymentId, context);
         final Either<ZuoraError, RefundInfoPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, RefundInfoPlugin>>() {
             @Override
             public Either<ZuoraError, RefundInfoPlugin> withConnection(final ZuoraConnection connection) {
-                final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = api.getByAccountName(connection, accountExternalKey);
+                final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = zuoraApi.getByAccountName(connection, accountExternalKey);
                 if (accountOrError.isLeft()) {
                     return Either.left(accountOrError.getLeft());
                 }
                 final String accountId = accountOrError.getRight().getId();
 
-                final Either<ZuoraError, List<com.zuora.api.object.Payment>> paymentsOrError = api.getProcessedPaymentsForAccount(connection, accountId);
+                final Either<ZuoraError, List<com.zuora.api.object.Payment>> paymentsOrError = zuoraApi.getProcessedPaymentsForAccount(connection, accountId);
                 if (paymentsOrError.isLeft()) {
                     return Either.left(paymentsOrError.getLeft());
                 }
@@ -123,7 +123,7 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
                 if (paymentToBeRefunded == null) {
                     return Either.left(new ZuoraError(ZuoraError.ERROR_NOTFOUND, "Can't find Payment object for refund"));
                 }
-                return convert(api.createRefund(connection, paymentToBeRefunded.getId(), kbPaymentId.toString(), refundAmount), errorConverter, refundConverter);
+                return convert(zuoraApi.createRefund(connection, paymentToBeRefunded.getId(), kbPaymentId.toString(), refundAmount), errorConverter, refundConverter);
             }
         });
         if (result.isLeft()) {
@@ -137,11 +137,11 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     @Override
     public void addPaymentMethod(final UUID kbPaymentMethodId, final PaymentMethodPlugin paymentMethodProps, final boolean setDefault, final CallContext context) throws PaymentPluginApiException {
 
-        final String accountExternalKey = killbillApi.getAccountExternalKeyFromPaymentMethodId(kbPaymentMethodId, context);
+        final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromPaymentMethodId(kbPaymentMethodId, context);
         final Either<ZuoraError, Void> result = withConnection(new ConnectionCallback<Either<ZuoraError, Void>>() {
             @Override
             public Either<ZuoraError, Void> withConnection(final ZuoraConnection connection) {
-                final Either<ZuoraError, String> result = api.addPaymentMethod(connection, accountExternalKey, paymentMethodProps, setDefault);
+                final Either<ZuoraError, String> result = zuoraApi.addPaymentMethod(connection, accountExternalKey, paymentMethodProps, setDefault);
                 return null;
             }
         });
@@ -153,11 +153,11 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     @Override
     public void deletePaymentMethod(final UUID kbPaymentMethodId, final CallContext context) throws PaymentPluginApiException {
 
-        final String accountExternalKey = killbillApi.getAccountExternalKeyFromPaymentMethodId(kbPaymentMethodId, context);
+        final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromPaymentMethodId(kbPaymentMethodId, context);
         final Either<ZuoraError, Void> result = withConnection(new ConnectionCallback<Either<ZuoraError, Void>>() {
             @Override
             public Either<ZuoraError, Void> withConnection(final ZuoraConnection connection) {
-                return convert(api.deletePaymentMethod(connection, accountExternalKey, kbPaymentMethodId.toString()), errorConverter, null);
+                return convert(zuoraApi.deletePaymentMethod(connection, accountExternalKey, kbPaymentMethodId.toString()), errorConverter, null);
             }
         });
         if (result.isLeft()) {
@@ -168,19 +168,19 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     @Override
     public void setDefaultPaymentMethod(final UUID kbPaymentMethodId, final CallContext context) throws PaymentPluginApiException {
 
-        final String accountExternalKey = killbillApi.getAccountExternalKeyFromPaymentMethodId(kbPaymentMethodId, context);
+        final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromPaymentMethodId(kbPaymentMethodId, context);
         final Either<ZuoraError, Void> result = withConnection(new ConnectionCallback<Either<ZuoraError, Void>>() {
             @Override
             public Either<ZuoraError, Void> withConnection(final ZuoraConnection connection) {
 
 
-                final Either<ZuoraError, PaymentMethod> paymentMethodOrError = api.getPaymentMethodById(connection, kbPaymentMethodId.toString());
+                final Either<ZuoraError, PaymentMethod> paymentMethodOrError = zuoraApi.getPaymentMethodById(connection, kbPaymentMethodId.toString());
                 if (paymentMethodOrError.isLeft()) {
                     return convert(paymentMethodOrError, errorConverter, null);
                 }
                 final PaymentMethod paymentMethod = paymentMethodOrError.getRight();
 
-                final Either<ZuoraError, Void> updatePaymentOrError = api.setDefaultPaymentMethod(connection, accountExternalKey, paymentMethod);
+                final Either<ZuoraError, Void> updatePaymentOrError = zuoraApi.setDefaultPaymentMethod(connection, accountExternalKey, paymentMethod);
                 return convert(updatePaymentOrError, errorConverter, null);
             }
         });
@@ -192,11 +192,11 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     @Override
     public List<PaymentMethodInfoPlugin> getPaymentMethods(final UUID kbAccountId, final boolean refreshFromGateway, final CallContext context) throws PaymentPluginApiException {
 
-        final String accountExternalKey = killbillApi.getAccountExternalKeyFromAccountId(kbAccountId, context);
+        final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromAccountId(kbAccountId, context);
         final Either<ZuoraError, List<PaymentMethodInfoPlugin>> result = withConnection(new ConnectionCallback<Either<ZuoraError, List<PaymentMethodInfoPlugin>>>() {
             @Override
             public Either<ZuoraError, List<PaymentMethodInfoPlugin>> withConnection(final ZuoraConnection connection) {
-                final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = api.getByAccountName(connection, accountExternalKey);
+                final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = zuoraApi.getByAccountName(connection, accountExternalKey);
 
                 if (accountOrError.isLeft()) {
                     return convert(accountOrError, errorConverter, null);
@@ -206,7 +206,7 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
                     final PaymentMethodInfoConverter converter = new PaymentMethodInfoConverter(kbAccountId, accountOrError.getRight().getDefaultPaymentMethodId(), pms);
 
                     final com.zuora.api.object.Account account = accountOrError.getRight();
-                    final Either<ZuoraError, List<PaymentMethod>> paymentMethodsOrError = api.getPaymentMethodsForAccount(connection, account);
+                    final Either<ZuoraError, List<PaymentMethod>> paymentMethodsOrError = zuoraApi.getPaymentMethodsForAccount(connection, account);
 
                     return convertList(paymentMethodsOrError, errorConverter, converter);
                 }

@@ -26,12 +26,12 @@
         <file>
             <source>target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</source>
             <outputDirectory>/java/${project.artifactId}/${project.version}</outputDirectory>
-            <filtered>true</filtered>
+            <fileMode>0644</fileMode>
         </file>
         <file>
             <source>src/main/assembly/killbill.properties</source>
             <outputDirectory>/java/${project.artifactId}/${project.version}</outputDirectory>
-            <filtered>true</filtered>
+            <fileMode>0644</fileMode>
         </file>
     </files>
 </assembly>

@@ -27,20 +27,20 @@ public class ZuoraApiBase  {
     protected final RefundConverter refundConverter = new RefundConverter();
     protected final IdentityConverter<String> stringConverter = new IdentityConverter<String>();
     protected final ConnectionPool pool;
-    protected final ZuoraApi api;
+    protected final ZuoraApi zuoraApi;
     protected final String instanceName;
     protected final LogService logService;
     protected final ZuoraPluginDao zuoraPluginDao;
-    protected final DefaultKillbillApi killbillApi;
+    protected final DefaultKillbillApi defaultKillbillApi;
 
-    public ZuoraApiBase(final ConnectionPool pool, final ZuoraApi api, final LogService logService, final OSGIKillbill osgiKillbill,
+    public ZuoraApiBase(final ConnectionPool pool, final ZuoraApi zuoraApi, final LogService logService, final OSGIKillbill osgiKillbill,
                                  final ZuoraPluginDao zuoraPluginDao, final String instanceName) {
         this.pool = pool;
-        this.api = api;
+        this.zuoraApi = zuoraApi;
         this.instanceName = instanceName;
         this.logService = logService;
         this.zuoraPluginDao = zuoraPluginDao;
-        this.killbillApi = new DefaultKillbillApi(osgiKillbill, logService);
+        this.defaultKillbillApi = new DefaultKillbillApi(osgiKillbill, logService);
     }
 
     protected <T> T withConnection(final ConnectionCallback<T> callback) {

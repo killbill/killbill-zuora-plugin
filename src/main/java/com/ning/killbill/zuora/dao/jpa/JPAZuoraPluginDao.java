@@ -1,4 +1,4 @@
-package com.ning.killbill.zuora.dao;
+package com.ning.killbill.zuora.dao.jpa;
 
 import java.util.HashMap;
 import java.util.List;
@@ -11,14 +11,15 @@ import javax.persistence.Persistence;
 import javax.persistence.Query;
 import javax.sql.DataSource;
 
+import com.ning.killbill.zuora.dao.ZuoraPluginDao;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 
-public class DefaultZuoraPluginDao implements ZuoraPluginDao {
+public class JPAZuoraPluginDao implements ZuoraPluginDao {
 
     private EntityManagerFactory entityManagerFactory;
 
 
-    public DefaultZuoraPluginDao(final DataSource dataSource) {
+    public JPAZuoraPluginDao(final DataSource dataSource) {
         Map<String, Object> props = new HashMap<String, Object>();
         props.put("openjpa.ConnectionFactory", dataSource);
         entityManagerFactory = Persistence.createEntityManagerFactory("zuora", props);

@@ -5,11 +5,9 @@ import java.util.UUID;
 
 import org.osgi.service.log.LogService;
 
-import com.ning.billing.account.api.Account;
 import com.ning.billing.osgi.api.OSGIKillbill;
 import com.ning.billing.payment.api.PaymentMethodPlugin;
 import com.ning.billing.payment.plugin.api.PaymentPluginApiException;
-import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.TenantContext;
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
@@ -36,11 +34,11 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
     @Override
     public String createPaymentProviderAccount(final UUID accountId, final TenantContext context) throws PaymentPluginApiException {
 
-        final Account account = killbillApi.getAccountFromAccountId(accountId, context);
+        final com.ning.billing.account.api.Account account = defaultKillbillApi.getAccountFromId(accountId, context);
         final Either<ZuoraError, String> result = withConnection(new ConnectionCallback<Either<ZuoraError, String>>() {
             @Override
             public Either<ZuoraError, String> withConnection(final ZuoraConnection connection) {
-                return convert(api.createPaymentProviderAccount(connection, account), errorConverter, stringConverter);
+                return convert(zuoraApi.createPaymentProviderAccount(connection, account), errorConverter, stringConverter);
             }
         });
         if (result.isLeft()) {
@@ -54,11 +52,11 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
     @Override
     public List<PaymentMethodPlugin> getPaymentMethodDetails(final UUID accountId, final TenantContext context) throws PaymentPluginApiException {
 
-        final String externalKey = killbillApi.getAccountExternalKeyFromAccountId(accountId, context);
+        final String externalKey = defaultKillbillApi.getAccountExternalKeyFromAccountId(accountId, context);
         final Either<ZuoraError, List<PaymentMethodPlugin>> result =  withConnection(new ConnectionCallback<Either<ZuoraError, List<PaymentMethodPlugin>>>() {
             @Override
             public Either<ZuoraError, List<PaymentMethodPlugin>> withConnection(final ZuoraConnection connection) {
-                final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = api.getByAccountName(connection, externalKey);
+                final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = zuoraApi.getByAccountName(connection, externalKey);
 
                 if (accountOrError.isLeft()) {
                     return convert(accountOrError, errorConverter, null);
@@ -66,7 +64,7 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
                 else {
                     final com.zuora.api.object.Account account = accountOrError.getRight();
                     final PaymentMethodConverter converter = new PaymentMethodConverter(account);
-                    final Either<ZuoraError, List<PaymentMethod>> paymentMethods = api.getPaymentMethodsForAccount(connection, account);
+                    final Either<ZuoraError, List<PaymentMethod>> paymentMethods = zuoraApi.getPaymentMethodsForAccount(connection, account);
                     return convertList(paymentMethods, errorConverter, converter);
                 }
             }
@@ -87,13 +85,13 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
         final Either<ZuoraError, PaymentMethodPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentMethodPlugin>>() {
             @Override
             public Either<ZuoraError, PaymentMethodPlugin> withConnection(final ZuoraConnection connection) {
-                final Either<ZuoraError, PaymentMethod> paymentMethodOrError = api.getPaymentMethodById(connection, externalPaymentId);
+                final Either<ZuoraError, PaymentMethod> paymentMethodOrError = zuoraApi.getPaymentMethodById(connection, externalPaymentId);
 
                 if (paymentMethodOrError.isLeft()) {
                     return convert(paymentMethodOrError, errorConverter, null);
                 }
                 else {
-                    final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = api.getAccountById(connection, paymentMethodOrError.getRight().getAccountId());
+                    final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = zuoraApi.getAccountById(connection, paymentMethodOrError.getRight().getAccountId());
 
                     if (accountOrError.isLeft()) {
                         return convert(accountOrError, errorConverter, null);
@@ -117,21 +115,21 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
     @Override
     public void updateDefaultPaymentMethod(final UUID accountId, final PaymentMethodPlugin paymentMethodProps, final TenantContext context) throws PaymentPluginApiException {
 
-        final String externalKey = killbillApi.getAccountExternalKeyFromAccountId(accountId, context);
+        final String externalKey = defaultKillbillApi.getAccountExternalKeyFromAccountId(accountId, context);
         final String paymentMethodType = paymentMethodProps.getValueString(PaymentMethodProperties.TYPE);
         if (CreditCardProperties.TYPE_VALUE.equals(paymentMethodType)) {
 
             final Either<ZuoraError, PaymentMethodPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentMethodPlugin>>() {
                 @Override
                 public Either<ZuoraError, PaymentMethodPlugin> withConnection(final ZuoraConnection connection) {
-                    final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = api.getByAccountName(connection, externalKey);
+                    final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = zuoraApi.getByAccountName(connection, externalKey);
 
                     if (accountOrError.isLeft()) {
                         return convert(accountOrError, errorConverter, null);
                     }
                     else {
                         final com.zuora.api.object.Account account = accountOrError.getRight();
-                        final Either<ZuoraError, PaymentMethod> paymentMethodOrError = api.updateCreditCardPaymentMethod(connection, account, paymentMethodProps);
+                        final Either<ZuoraError, PaymentMethod> paymentMethodOrError = zuoraApi.updateCreditCardPaymentMethod(connection, account, paymentMethodProps);
 
                         if (paymentMethodOrError.isLeft()) {
                             return convert(paymentMethodOrError, errorConverter, null);

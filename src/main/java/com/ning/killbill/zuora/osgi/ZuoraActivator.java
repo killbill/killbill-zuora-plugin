@@ -21,17 +21,10 @@ import java.util.Hashtable;
 import java.util.Properties;
 
 import javax.servlet.Servlet;
-import javax.servlet.http.HttpServlet;
 
-import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.log.LogService;
 import org.skife.config.ConfigurationObjectFactory;
 
-import com.ning.billing.beatrix.bus.api.ExtBusEvent;
-import com.ning.billing.osgi.api.OSGIKillbill;
 import com.ning.billing.osgi.api.OSGIPluginProperties;
 import com.ning.billing.payment.plugin.api.PaymentPluginApi;
 import com.ning.killbill.osgi.libs.killbill.KillbillActivatorBase;
@@ -39,7 +32,8 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKill
 import com.ning.killbill.zuora.api.DefaultZuoraPrivateApi;
 import com.ning.killbill.zuora.api.ZuoraPaymentPluginApi;
 import com.ning.killbill.zuora.api.ZuoraPrivateApi;
-import com.ning.killbill.zuora.dao.DefaultZuoraPluginDao;
+import com.ning.killbill.zuora.dao.dbi.JDBIZuoraPluginDao;
+import com.ning.killbill.zuora.dao.jpa.JPAZuoraPluginDao;
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
 import com.ning.killbill.zuora.http.ZuoraHttpServlet;
 import com.ning.killbill.zuora.zuora.ConnectionFactory;
@@ -70,8 +64,6 @@ public class ZuoraActivator extends KillbillActivatorBase {
     private ZuoraHttpServlet zuoraHttpServlet;
     private ZuoraPrivateApi zuoraPrivateApi;
 
-    private static ZuoraPrivateApi zuoraPrivateApiStaticHack = null;
-
     @Override
     public void start(final BundleContext context) throws Exception {
 
@@ -83,12 +75,12 @@ public class ZuoraActivator extends KillbillActivatorBase {
         factory = new ConnectionFactory(config, api, logService);
         pool = new ConnectionPool(factory, config);
 
-        zuoraPluginDao = new DefaultZuoraPluginDao(dataSource.getDataSource());
+        zuoraPluginDao = config.useJPADAOImplementation() ?
+                         new JPAZuoraPluginDao(dataSource.getDataSource()) :
+                         new JDBIZuoraPluginDao(dataSource.getDataSource());
 
         zuoraPaymentPluginApi = new ZuoraPaymentPluginApi(pool, api, logService, killbillAPI, zuoraPluginDao, DEFAULT_INSTANCE_NAME);
         zuoraPrivateApi = new DefaultZuoraPrivateApi(pool, api, logService, killbillAPI, zuoraPluginDao, DEFAULT_INSTANCE_NAME);
-
-        zuoraPrivateApiStaticHack = zuoraPrivateApi;
 
         zuoraHttpServlet =  new ZuoraHttpServlet(zuoraPrivateApi, zuoraPluginDao, mapper);
 
@@ -99,7 +91,6 @@ public class ZuoraActivator extends KillbillActivatorBase {
     @Override
     public void stop(final BundleContext context) throws Exception {
         super.stop(context);
-        zuoraPrivateApiStaticHack = null;
     }
 
     @Override
@@ -125,10 +116,5 @@ public class ZuoraActivator extends KillbillActivatorBase {
         final Dictionary props = new Hashtable();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
         registrar.registerService(context, PaymentPluginApi.class, api, props);
-    }
-
-
-    public static ZuoraPrivateApi getZuoraPrivateApi() {
-        return zuoraPrivateApiStaticHack;
     }
 }

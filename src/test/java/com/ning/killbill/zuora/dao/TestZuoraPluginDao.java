@@ -15,7 +15,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.ning.killbill.zuora.dao.dbi.JDBIZuoraPluginDao;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
+import com.ning.killbill.zuora.dao.jpa.JPAZuoraPluginDao;
 
 import com.jolbox.bonecp.BoneCPConfig;
 import com.jolbox.bonecp.BoneCPDataSource;
@@ -35,14 +37,15 @@ public class TestZuoraPluginDao {
     private final String JDBC_USER = "root";
     private final String JDBC_PWD = "root";
 
-    private DefaultZuoraPluginDao defaultZuoraPluginDao;
+    private ZuoraPluginDao defaultZuoraPluginDao;
     private DataSource dataSource;
 
 
     @BeforeClass(groups = "slow")
     public void setup() throws Exception {
         dataSource = getC3P0DataSource();
-        defaultZuoraPluginDao = new DefaultZuoraPluginDao(dataSource);
+        //defaultZuoraPluginDao = new JPAZuoraPluginDao(dataSource);
+        defaultZuoraPluginDao = new JDBIZuoraPluginDao(dataSource);
         cleanupTables();
     }
 
@@ -51,7 +54,7 @@ public class TestZuoraPluginDao {
         cleanupTables();
         /*
         if (defaultZuoraPluginDao == null) {
-            defaultZuoraPluginDao = new DefaultZuoraPluginDao(dataSource);
+            defaultZuoraPluginDao = new JPAZuoraPluginDao(dataSource);
         }
         */
     }
