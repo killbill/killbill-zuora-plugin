@@ -66,6 +66,11 @@
             <version>${killbill.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.ning.billing</groupId>
+            <artifactId>killbill-osgi-bundles-lib-slf4j-osgi</artifactId>
+            <version>${killbill.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.openjpa</groupId>
             <artifactId>openjpa</artifactId>
             <version>2.2.1</version>
