@@ -133,16 +133,19 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
         }
     }
 
-
     @Override
-    public void addPaymentMethod(final UUID kbPaymentMethodId, final PaymentMethodPlugin paymentMethodProps, final boolean setDefault, final CallContext context) throws PaymentPluginApiException {
-
-        final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromPaymentMethodId(kbPaymentMethodId, context);
+    public void addPaymentMethod(final UUID kbAccountId, final UUID kbPaymentMethodId, final PaymentMethodPlugin paymentMethodProps,
+                                 final boolean setDefault, final CallContext context) throws PaymentPluginApiException {
+        final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromAccountId(kbAccountId, context);
         final Either<ZuoraError, Void> result = withConnection(new ConnectionCallback<Either<ZuoraError, Void>>() {
             @Override
             public Either<ZuoraError, Void> withConnection(final ZuoraConnection connection) {
                 final Either<ZuoraError, String> result = zuoraApi.addPaymentMethod(connection, accountExternalKey, paymentMethodProps, setDefault);
-                return null;
+                if (result.isLeft()) {
+                    return Either.left(result.getLeft());
+                } else {
+                    return Either.right(null);
+                }
             }
         });
         if (result.isLeft()) {
