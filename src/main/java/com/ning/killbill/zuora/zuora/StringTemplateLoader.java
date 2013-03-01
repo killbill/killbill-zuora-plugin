@@ -22,8 +22,10 @@ import java.io.InputStreamReader;
 import java.util.regex.Matcher;
 
 import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateErrorListener;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.language.AngleBracketTemplateLexer;
+import org.osgi.service.log.LogService;
 
 public class StringTemplateLoader {
     public static class StringTemplateBuilder {
@@ -46,7 +48,7 @@ public class StringTemplateLoader {
     private static final String sep = "/"; // *Not* System.getProperty("file.separator"), which breaks in jars
     private final StringTemplateGroup group;
 
-    public StringTemplateLoader(Class<?> baseClass) {
+    public StringTemplateLoader(Class<?> baseClass, final LogService logService) {
         String path = baseClass.getName().replaceAll("\\.", Matcher.quoteReplacement(sep)) + ".stg";
 
         try {
@@ -62,7 +64,18 @@ public class StringTemplateLoader {
 
             InputStreamReader reader = new InputStreamReader(ins);
 
-            this.group = new StringTemplateGroup(reader, AngleBracketTemplateLexer.class);
+            this.group = new StringTemplateGroup(reader, AngleBracketTemplateLexer.class, new StringTemplateErrorListener() {
+
+                @Override
+                public void error(final String msg, final Throwable e) {
+                    logService.log(LogService.LOG_ERROR, msg, e);
+                }
+
+                @Override
+                public void warning(final String msg) {
+                    logService.log(LogService.LOG_WARNING, msg);
+                }
+            });
             reader.close();
         }
         catch (IOException e) {

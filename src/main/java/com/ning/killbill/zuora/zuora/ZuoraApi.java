@@ -73,7 +73,7 @@ public class ZuoraApi {
     public ZuoraApi(ZuoraConfig config, final LogService logService) {
         this.config = config;
         this.logService = logService;
-        this.stringTemplateLoader = new StringTemplateLoader(ZuoraApi.class);
+        this.stringTemplateLoader = new StringTemplateLoader(ZuoraApi.class, logService);
     }
 
     //
