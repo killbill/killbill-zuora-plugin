@@ -37,6 +37,7 @@ import com.ning.killbill.zuora.dao.ZuoraPluginDao;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 import com.ning.killbill.zuora.util.Either;
 import com.ning.killbill.zuora.zuora.ConnectionPool;
+import com.ning.killbill.zuora.zuora.PaymentMethodConverter;
 import com.ning.killbill.zuora.zuora.PaymentMethodInfoConverter;
 import com.ning.killbill.zuora.zuora.ZuoraApi;
 import com.ning.killbill.zuora.zuora.ZuoraConnection;
@@ -164,6 +165,40 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     }
 
     @Override
+    public PaymentMethodPlugin getPaymentMethodDetail(final UUID kbAccountId, final UUID kbPaymentMethodId, final TenantContext context) throws PaymentPluginApiException {
+
+        final Either<ZuoraError, PaymentMethodPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentMethodPlugin>>() {
+            @Override
+            public Either<ZuoraError, PaymentMethodPlugin> withConnection(final ZuoraConnection connection) {
+                final PaymentMethodEntity paymentMethodEntity = zuoraPluginDao.getPaymentMethodById(kbPaymentMethodId.toString());
+                if (paymentMethodEntity == null) {
+                    return Either.right(null);
+                }
+
+                final Either<ZuoraError, PaymentMethod> paymentMethodOrError = zuoraApi.getPaymentMethodById(connection, paymentMethodEntity.getZuoraPaymentMethodId());
+                if (paymentMethodOrError.isLeft()) {
+                    return convert(paymentMethodOrError, errorConverter, null);
+                } else {
+                    final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = zuoraApi.getAccountById(connection, paymentMethodOrError.getRight().getAccountId());
+
+                    if (accountOrError.isLeft()) {
+                        return convert(accountOrError, errorConverter, null);
+                    } else {
+                        final com.zuora.api.object.Account account = accountOrError.getRight();
+                        final PaymentMethodConverter converter = new PaymentMethodConverter(account);
+                        return convert(paymentMethodOrError, errorConverter, converter);
+                    }
+                }
+            }
+        });
+        if (result.isLeft()) {
+            throw new PaymentPluginApiException(result.getLeft().getType(), result.getLeft().getMessage());
+        } else {
+            return result.getRight();
+        }
+    }
+
+    @Override
     public void setDefaultPaymentMethod(final UUID kbPaymentMethodId, final CallContext context) throws PaymentPluginApiException {
 
         final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromPaymentMethodId(kbPaymentMethodId, context);
@@ -171,8 +206,12 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
             @Override
             public Either<ZuoraError, Void> withConnection(final ZuoraConnection connection) {
 
+                final PaymentMethodEntity paymentMethodEntity = zuoraPluginDao.getPaymentMethodById(kbPaymentMethodId.toString());
+                if (paymentMethodEntity == null) {
+                    return Either.right(null);
+                }
 
-                final Either<ZuoraError, PaymentMethod> paymentMethodOrError = zuoraApi.getPaymentMethodById(connection, kbPaymentMethodId.toString());
+                final Either<ZuoraError, PaymentMethod> paymentMethodOrError = zuoraApi.getPaymentMethodById(connection, paymentMethodEntity.getZuoraPaymentMethodId());
                 if (paymentMethodOrError.isLeft()) {
                     return convert(paymentMethodOrError, errorConverter, null);
                 }

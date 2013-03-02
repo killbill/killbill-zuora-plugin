@@ -77,41 +77,6 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
     }
 
 
-
-    @Override
-    public PaymentMethodPlugin getPaymentMethodDetail(final UUID accountId, final String externalPaymentId, final TenantContext context)
-            throws PaymentPluginApiException {
-
-        final Either<ZuoraError, PaymentMethodPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentMethodPlugin>>() {
-            @Override
-            public Either<ZuoraError, PaymentMethodPlugin> withConnection(final ZuoraConnection connection) {
-                final Either<ZuoraError, PaymentMethod> paymentMethodOrError = zuoraApi.getPaymentMethodById(connection, externalPaymentId);
-
-                if (paymentMethodOrError.isLeft()) {
-                    return convert(paymentMethodOrError, errorConverter, null);
-                }
-                else {
-                    final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = zuoraApi.getAccountById(connection, paymentMethodOrError.getRight().getAccountId());
-
-                    if (accountOrError.isLeft()) {
-                        return convert(accountOrError, errorConverter, null);
-                    }
-                    else {
-                        final com.zuora.api.object.Account account = accountOrError.getRight();
-                        final PaymentMethodConverter converter = new PaymentMethodConverter(account);
-                        return convert(paymentMethodOrError, errorConverter, converter);
-                    }
-                }
-            }
-        });
-        if (result.isLeft()) {
-            throw new PaymentPluginApiException(result.getLeft().getType(), result.getLeft().getMessage());
-        } else {
-            return result.getRight();
-        }
-    }
-
-
     @Override
     public void updateDefaultPaymentMethod(final UUID accountId, final PaymentMethodPlugin paymentMethodProps, final TenantContext context) throws PaymentPluginApiException {
 

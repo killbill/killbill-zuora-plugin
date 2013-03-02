@@ -3,10 +3,8 @@ package com.ning.killbill.zuora.api;
 import java.util.List;
 import java.util.UUID;
 
-import com.ning.billing.account.api.Account;
 import com.ning.billing.payment.api.PaymentMethodPlugin;
 import com.ning.billing.payment.plugin.api.PaymentPluginApiException;
-import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.TenantContext;
 
 /**
@@ -36,18 +34,6 @@ public interface ZuoraPrivateApi {
      */
     public List<PaymentMethodPlugin> getPaymentMethodDetails(UUID accountId, TenantContext context)
             throws PaymentPluginApiException;
-
-    /**
-     *
-     * @param accountId the Killbill accountId
-     * @param paymentMethodId the paymentMethodId  (that zuora knows about)
-     * @param context a Killbill context
-     * @return the paymentMethod info associated with that externalPaymentMethodId
-     * @throws PaymentPluginApiException
-     */
-    public PaymentMethodPlugin getPaymentMethodDetail(UUID accountId, String paymentMethodId, TenantContext context)
-            throws PaymentPluginApiException;
-
 
     /**
      * Updates the DEFAULT zuora payment method
