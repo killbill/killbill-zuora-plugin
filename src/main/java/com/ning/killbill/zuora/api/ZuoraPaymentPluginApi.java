@@ -140,12 +140,7 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
         final Either<ZuoraError, Void> result = withConnection(new ConnectionCallback<Either<ZuoraError, Void>>() {
             @Override
             public Either<ZuoraError, Void> withConnection(final ZuoraConnection connection) {
-                final Either<ZuoraError, String> result = zuoraApi.addPaymentMethod(connection, accountExternalKey, paymentMethodProps, setDefault);
-                if (result.isLeft()) {
-                    return Either.left(result.getLeft());
-                } else {
-                    return Either.right(null);
-                }
+                return convert(zuoraApi.addPaymentMethod(connection, accountExternalKey, paymentMethodProps, setDefault), errorConverter, null);
             }
         });
         if (result.isLeft()) {
