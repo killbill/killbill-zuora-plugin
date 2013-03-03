@@ -37,6 +37,7 @@ import com.ning.killbill.zuora.dao.ZuoraPluginDao;
 import com.ning.killbill.zuora.dao.dbi.JDBIZuoraPluginDao;
 import com.ning.killbill.zuora.dao.jpa.JPAZuoraPluginDao;
 import com.ning.killbill.zuora.http.ZuoraHttpServlet;
+import com.ning.killbill.zuora.killbill.DefaultKillbillApi;
 import com.ning.killbill.zuora.zuora.ConnectionFactory;
 import com.ning.killbill.zuora.zuora.ConnectionPool;
 import com.ning.killbill.zuora.zuora.ZuoraApi;
@@ -83,8 +84,9 @@ public class ZuoraActivator extends KillbillActivatorBase {
                          new JPAZuoraPluginDao(dataSource.getDataSource()) :
                          new JDBIZuoraPluginDao(dataSource.getDataSource());
 
-        zuoraPaymentPluginApi = new ZuoraPaymentPluginApi(pool, api, logService, killbillAPI, zuoraPluginDao, DEFAULT_INSTANCE_NAME);
-        zuoraPrivateApi = new DefaultZuoraPrivateApi(pool, api, logService, killbillAPI, zuoraPluginDao, DEFAULT_INSTANCE_NAME);
+        final DefaultKillbillApi defaultKillbillApi = new DefaultKillbillApi(killbillAPI, logService);
+        zuoraPaymentPluginApi = new ZuoraPaymentPluginApi(pool, api, logService, defaultKillbillApi, zuoraPluginDao, DEFAULT_INSTANCE_NAME);
+        zuoraPrivateApi = new DefaultZuoraPrivateApi(pool, api, logService, defaultKillbillApi, zuoraPluginDao, DEFAULT_INSTANCE_NAME);
 
         zuoraHttpServlet =  new ZuoraHttpServlet(zuoraPrivateApi, zuoraPluginDao, mapper);
 

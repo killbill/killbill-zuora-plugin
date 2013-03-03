@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.osgi.service.log.LogService;
 
-import com.ning.billing.osgi.api.OSGIKillbill;
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
 import com.ning.killbill.zuora.killbill.DefaultKillbillApi;
 import com.ning.killbill.zuora.util.Either;
@@ -33,14 +32,14 @@ public class ZuoraApiBase  {
     protected final ZuoraPluginDao zuoraPluginDao;
     protected final DefaultKillbillApi defaultKillbillApi;
 
-    public ZuoraApiBase(final ConnectionPool pool, final ZuoraApi zuoraApi, final LogService logService, final OSGIKillbill osgiKillbill,
-                                 final ZuoraPluginDao zuoraPluginDao, final String instanceName) {
+    public ZuoraApiBase(final ConnectionPool pool, final ZuoraApi zuoraApi, final LogService logService,
+                        final DefaultKillbillApi defaultKillbillApi, final ZuoraPluginDao zuoraPluginDao, final String instanceName) {
         this.pool = pool;
         this.zuoraApi = zuoraApi;
         this.instanceName = instanceName;
         this.logService = logService;
         this.zuoraPluginDao = zuoraPluginDao;
-        this.defaultKillbillApi = new DefaultKillbillApi(osgiKillbill, logService);
+        this.defaultKillbillApi = defaultKillbillApi;
     }
 
     protected <T> T withConnection(final ConnectionCallback<T> callback) {

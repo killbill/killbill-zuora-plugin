@@ -5,12 +5,12 @@ import java.util.UUID;
 
 import org.osgi.service.log.LogService;
 
-import com.ning.billing.osgi.api.OSGIKillbill;
 import com.ning.billing.payment.api.PaymentMethodPlugin;
 import com.ning.billing.payment.plugin.api.PaymentPluginApiException;
 import com.ning.billing.util.callcontext.TenantContext;
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
+import com.ning.killbill.zuora.killbill.DefaultKillbillApi;
 import com.ning.killbill.zuora.method.CreditCardProperties;
 import com.ning.killbill.zuora.method.PaymentMethodProperties;
 import com.ning.killbill.zuora.util.Either;
@@ -26,8 +26,8 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
 
 
     public DefaultZuoraPrivateApi(final ConnectionPool pool, final ZuoraApi api, final LogService logService,
-                                  final OSGIKillbill osgiKillbill, final ZuoraPluginDao zuoraPluginDao, final String instanceName) {
-        super(pool, api, logService, osgiKillbill, zuoraPluginDao, instanceName);
+                                  final DefaultKillbillApi defaultKillbillApi, final ZuoraPluginDao zuoraPluginDao, final String instanceName) {
+        super(pool, api, logService, defaultKillbillApi, zuoraPluginDao, instanceName);
 
     }
 
