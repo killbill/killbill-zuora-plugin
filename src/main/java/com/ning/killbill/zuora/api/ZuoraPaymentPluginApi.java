@@ -178,6 +178,8 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
         });
         if (result.isLeft()) {
             throw new PaymentPluginApiException(result.getLeft().getType(), result.getLeft().getMessage());
+        } else {
+            zuoraPluginDao.deletePaymentMethodById(kbPaymentMethodId.toString());
         }
     }
 
@@ -217,16 +219,16 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
 
     @Override
     public void setDefaultPaymentMethod(final UUID kbPaymentMethodId, final CallContext context) throws PaymentPluginApiException {
+        final PaymentMethodEntity paymentMethodEntity = zuoraPluginDao.getPaymentMethodById(kbPaymentMethodId.toString());
+        if (paymentMethodEntity == null) {
+            return;
+        }
 
         final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromPaymentMethodId(kbPaymentMethodId, context);
         final Either<ZuoraError, Void> result = withConnection(new ConnectionCallback<Either<ZuoraError, Void>>() {
             @Override
             public Either<ZuoraError, Void> withConnection(final ZuoraConnection connection) {
 
-                final PaymentMethodEntity paymentMethodEntity = zuoraPluginDao.getPaymentMethodById(kbPaymentMethodId.toString());
-                if (paymentMethodEntity == null) {
-                    return Either.right(null);
-                }
 
                 final Either<ZuoraError, PaymentMethod> paymentMethodOrError = zuoraApi.getPaymentMethodById(connection, paymentMethodEntity.getZuoraPaymentMethodId());
                 if (paymentMethodOrError.isLeft()) {
@@ -240,6 +242,11 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
         });
         if (result.isLeft()) {
             throw new PaymentPluginApiException(result.getLeft().getType(), result.getLeft().getMessage());
+        } else {
+            for (final PaymentMethodEntity entityForAccount : zuoraPluginDao.getPaymentMethods(paymentMethodEntity.getKbAccountId())) {
+                entityForAccount.setDefault(entityForAccount.getKbPaymentMethodId().equals(kbPaymentMethodId.toString()));
+                zuoraPluginDao.updatePaymentMethod(entityForAccount);
+            }
         }
     }
 

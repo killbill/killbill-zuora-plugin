@@ -1,6 +1,7 @@
 package com.ning.killbill.zuora.dao;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
@@ -43,9 +44,10 @@ public class MockZuoraPluginDao implements ZuoraPluginDao {
     @Override
     public void deletePaymentMethodById(final String kbPaymentMethodId) {
         synchronized (paymentMethodEntities) {
-            for (final PaymentMethodEntity paymentMethodEntity : paymentMethodEntities) {
+            for (Iterator<PaymentMethodEntity> iterator = paymentMethodEntities.iterator(); iterator.hasNext(); ) {
+                final PaymentMethodEntity paymentMethodEntity = iterator.next();
                 if (paymentMethodEntity.getKbPaymentMethodId().equals(kbPaymentMethodId)) {
-                    paymentMethodEntities.remove(paymentMethodEntity);
+                    iterator.remove();
                 }
             }
         }

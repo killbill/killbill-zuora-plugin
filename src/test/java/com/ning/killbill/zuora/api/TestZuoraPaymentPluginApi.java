@@ -18,6 +18,7 @@ import com.ning.billing.payment.plugin.api.PaymentPluginApiException;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.zuora.dao.MockZuoraPluginDao;
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
+import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 import com.ning.killbill.zuora.killbill.MockDefaultKillbillApi;
 import com.ning.killbill.zuora.zuora.ConnectionPool;
 import com.ning.killbill.zuora.zuora.MockZuoraApi;
@@ -27,6 +28,7 @@ public class TestZuoraPaymentPluginApi {
 
     private final CallContext callContext = Mockito.mock(CallContext.class);
 
+    private ZuoraPluginDao zuoraPluginDao;
     private ZuoraPaymentPluginApi zuoraPaymentPluginApi;
     private UUID kbAccountId;
     private String kbExternalKey;
@@ -35,7 +37,7 @@ public class TestZuoraPaymentPluginApi {
     @BeforeMethod(groups = "fast")
     public void setup() throws Exception {
         final ZuoraApi zuoraApi = new MockZuoraApi();
-        final ZuoraPluginDao zuoraPluginDao = new MockZuoraPluginDao();
+        zuoraPluginDao = new MockZuoraPluginDao();
         final MockDefaultKillbillApi defaultKillbillApi = new MockDefaultKillbillApi();
         zuoraPaymentPluginApi = new ZuoraPaymentPluginApi(Mockito.mock(ConnectionPool.class),
                                                           zuoraApi,
@@ -90,6 +92,7 @@ public class TestZuoraPaymentPluginApi {
 
     private void verifyPaymentMethods(@Nullable final UUID kbPaymentMethodId, @Nullable final String zuoraPaymentMethodId,
                                       final boolean isDefault, final int howMany) throws PaymentPluginApiException {
+        // Verify the Zuora state
         final List<PaymentMethodInfoPlugin> paymentMethodInfoPlugins = zuoraPaymentPluginApi.getPaymentMethods(kbAccountId, false, callContext);
         Assert.assertEquals(paymentMethodInfoPlugins.size(), howMany);
 
@@ -98,6 +101,18 @@ public class TestZuoraPaymentPluginApi {
             Assert.assertEquals(zePm.getAccountId(), kbAccountId);
             Assert.assertEquals(zePm.getPaymentMethodId(), kbPaymentMethodId);
             Assert.assertEquals(zePm.getExternalPaymentMethodId(), zuoraPaymentMethodId);
+            Assert.assertEquals(zePm.isDefault(), isDefault);
+        }
+
+        // Verify the Killbill state
+        final List<PaymentMethodEntity> paymentMethodEntities = zuoraPluginDao.getPaymentMethods(kbAccountId.toString());
+        Assert.assertEquals(paymentMethodEntities.size(), howMany);
+
+        if (howMany == 1) {
+            final PaymentMethodEntity zePm = paymentMethodEntities.get(0);
+            Assert.assertEquals(zePm.getKbAccountId(), kbAccountId.toString());
+            Assert.assertEquals(zePm.getKbPaymentMethodId(), kbPaymentMethodId.toString());
+            Assert.assertEquals(zePm.getZuoraPaymentMethodId(), zuoraPaymentMethodId);
             Assert.assertEquals(zePm.isDefault(), isDefault);
         }
     }
