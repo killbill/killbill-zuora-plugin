@@ -17,6 +17,7 @@
             <unpackOptions>
                 <excludes>
                     <exclude>META-INF/cxf/**</exclude>
+                    <exclude>javax/xml/**</exclude>
                 </excludes>
             </unpackOptions>
         </dependencySet>

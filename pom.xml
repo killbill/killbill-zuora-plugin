@@ -283,18 +283,26 @@
                         <Bundle-Activator>com.ning.killbill.zuora.osgi.ZuoraActivator</Bundle-Activator>
                         <Export-Package></Export-Package>
                         <Import-Package>
-                            javax.net.ssl;
-                            javax.management;
-                            javax.jws;
-                            javax.activation;
                             org.xml.sax.helpers;
                             org.xml.sax;
                             org.w3c.dom;
                             org.w3c.dom.ls;
+                            javax.net.ssl;
+                            javax.management;
+                            javax.jws;
+                            javax.activation;
+                            javax.xml.soap;
                             javax.xml.ws;
-                            javax.xml.stream;
-                            javax.xml.bind.annotation.adapters;
                             javax.xml.ws.spi;
+                            javax.xml.ws.handler.soap;
+                            javax.xml.ws.handler;
+                            javax.xml.ws.http;
+                            javax.xml.ws.soap;
+                            javax.xml.ws.wsaddressing;
+                            javax.xml.stream;
+                            javax.xml.stream.events;
+                            javax.xml.stream.util;
+                            javax.xml.bind.annotation.adapters;
                             javax.xml.bind;
                             javax.xml.bind.annotation;
                             javax.xml.bind.attachment;
@@ -305,7 +313,7 @@
                             javax.xml.transform.sax;
                             javax.xml.transform.dom;
                             javax.xml.transform.stream;
-                            resolution:=optional;version="[0,3)",
+                            version="[0,3)",
                             *;resolution:=optional
                         </Import-Package>
                     </instructions>
