@@ -73,7 +73,7 @@ public class ZuoraApi {
     public ZuoraApi(ZuoraConfig config, final LogService logService) {
         this.config = config;
         this.logService = logService;
-        this.stringTemplateLoader = new StringTemplateLoader(ZuoraApi.class);
+        this.stringTemplateLoader = new StringTemplateLoader(ZuoraApi.class, logService);
     }
 
     //
@@ -528,10 +528,10 @@ public class ZuoraApi {
         }
     }
 
-    public Either<ZuoraError, String> addPaymentMethod(ZuoraConnection connection,
-                                                       String accountName,
-                                                       final PaymentMethodPlugin paymentMethodProps,
-                                                       boolean setDefault) {
+    public Either<ZuoraError, PaymentMethod> addPaymentMethod(ZuoraConnection connection,
+                                                              String accountName,
+                                                              final PaymentMethodPlugin paymentMethodProps,
+                                                              boolean setDefault) {
 
         try {
 
@@ -557,10 +557,10 @@ public class ZuoraApi {
         }
     }
 
-    private Either<ZuoraError, String> addPaypalPaymentMethod(ZuoraConnection connection,
-                                                              Account account,
-                                                              final PaymentMethodPlugin paymentMethodProps,
-                                                              boolean setDefault) {
+    private Either<ZuoraError, PaymentMethod> addPaypalPaymentMethod(ZuoraConnection connection,
+                                                                     Account account,
+                                                                     final PaymentMethodPlugin paymentMethodProps,
+                                                                     boolean setDefault) {
         final com.zuora.api.object.ObjectFactory objectFactory = connection.getObjectFactory();
 
         try {
@@ -591,7 +591,12 @@ public class ZuoraApi {
                     return Either.left(setPaymentMethodError.getLeft());
                 }
             }
-            return errorOrId;
+
+            if (errorOrId.isLeft()) {
+                return Either.left(errorOrId.getLeft());
+            } else {
+                return Either.right(paymentMethod);
+            }
         } catch (Exception ex) {
             return Either.left(new ZuoraError(ZuoraError.ERROR_UNKNOWN, ex.getMessage()));
         }
@@ -657,10 +662,10 @@ public class ZuoraApi {
 
 
     // This method is only used for testing, in live system we don't pass credit card numbers
-    private Either<ZuoraError, String> addCreditCardPaymentMethod(ZuoraConnection connection,
-                                                                  Account account,
-                                                                  PaymentMethodPlugin creditCardPaymentMethod,
-                                                                  final boolean setDefault) {
+    private Either<ZuoraError, PaymentMethod> addCreditCardPaymentMethod(ZuoraConnection connection,
+                                                                         Account account,
+                                                                         PaymentMethodPlugin creditCardPaymentMethod,
+                                                                         final boolean setDefault) {
 
         final com.zuora.api.object.ObjectFactory objectFactory = connection.getObjectFactory();
 
@@ -683,7 +688,12 @@ public class ZuoraApi {
                     return Either.left(setPaymentMethodError.getLeft());
                 }
             }
-            return errorOrId;
+
+            if (errorOrId.isLeft()) {
+                return Either.left(errorOrId.getLeft());
+            } else {
+                return Either.right(paymentMethod);
+            }
         } catch (Exception ex) {
             return Either.left(new ZuoraError(ZuoraError.ERROR_UNKNOWN, ex.getMessage()));
         }

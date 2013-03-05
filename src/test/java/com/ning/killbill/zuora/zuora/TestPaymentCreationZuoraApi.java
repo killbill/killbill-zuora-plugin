@@ -16,24 +16,23 @@
 
 package com.ning.killbill.zuora.zuora;
 
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
-
-import com.ning.killbill.zuora.util.Either;
-
 
 import org.osgi.service.log.LogService;
 import org.testng.annotations.Test;
 
 import com.ning.billing.payment.api.PaymentMethodPlugin;
+import com.ning.killbill.zuora.util.Either;
+
 import com.zuora.api.object.Invoice;
 import com.zuora.api.object.Payment;
+import com.zuora.api.object.PaymentMethod;
 import com.zuora.api.object.Subscription;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 public class TestPaymentCreationZuoraApi extends TestZuoraApiBase {
 
@@ -48,7 +47,7 @@ public class TestPaymentCreationZuoraApi extends TestZuoraApiBase {
                 logService.log(LogService.LOG_INFO,"Starting test testCreatePayment for account " + account.getId());
 
                 PaymentMethodPlugin detail = createPaypalPaymentMethod(null, true);
-                Either<ZuoraError, String> resultAddPm = zuoraApi.addPaymentMethod(connection, EXTERNAL_NAME, detail, true);
+                Either<ZuoraError, PaymentMethod> resultAddPm = zuoraApi.addPaymentMethod(connection, EXTERNAL_NAME, detail, true);
                 assertTrue(resultAddPm.isRight());
 
                 final BigDecimal paymentAmount = new BigDecimal(12.56).setScale(2, RoundingMode.HALF_EVEN);
@@ -90,7 +89,7 @@ public class TestPaymentCreationZuoraApi extends TestZuoraApiBase {
                 logService.log(LogService.LOG_INFO,"Starting test testCreatePayment for account " + account.getId());
 
                 PaymentMethodPlugin detail = createCreditCardPaymentMethod(null, true, "2015-07");
-                Either<ZuoraError, String> resultAddPm = zuoraApi.addPaymentMethod(connection, EXTERNAL_NAME, detail, true);
+                Either<ZuoraError, PaymentMethod> resultAddPm = zuoraApi.addPaymentMethod(connection, EXTERNAL_NAME, detail, true);
                 assertTrue(resultAddPm.isRight());
 
                 final BigDecimal paymentAmount = new BigDecimal(12.56).setScale(2, RoundingMode.HALF_EVEN);

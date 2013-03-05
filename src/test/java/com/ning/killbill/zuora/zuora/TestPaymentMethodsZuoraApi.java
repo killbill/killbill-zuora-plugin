@@ -16,22 +16,21 @@
 
 package com.ning.killbill.zuora.zuora;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
 import java.util.List;
 
+import org.testng.annotations.Test;
+
+import com.ning.billing.payment.api.PaymentMethodPlugin;
 import com.ning.killbill.zuora.method.CreditCardProperties;
 import com.ning.killbill.zuora.method.PaymentMethodProperties;
 import com.ning.killbill.zuora.method.PaypalProperties;
 import com.ning.killbill.zuora.util.Either;
 
-import org.testng.annotations.Test;
-
-import com.ning.billing.payment.api.PaymentMethodPlugin;
-
 import com.zuora.api.object.Account;
 import com.zuora.api.object.PaymentMethod;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 
 public class TestPaymentMethodsZuoraApi extends TestZuoraApiBase {
@@ -45,14 +44,14 @@ public class TestPaymentMethodsZuoraApi extends TestZuoraApiBase {
             public Void withConnection(ZuoraConnection connection) {
 
                 PaymentMethodPlugin detail = createCreditCardPaymentMethod(null, true, "2015-07");
-                Either<ZuoraError, String> resultAddPm = zuoraApi.addPaymentMethod(connection, EXTERNAL_NAME, detail, true);
+                Either<ZuoraError, PaymentMethod> resultAddPm = zuoraApi.addPaymentMethod(connection, EXTERNAL_NAME, detail, true);
                 assertTrue(resultAddPm.isRight());
 
                 // Fetch account again
                 Either<ZuoraError, Account> resultGetSnAccount = zuoraApi.getByAccountName(connection, EXTERNAL_NAME);
                 assertTrue(resultGetSnAccount.isRight());
 
-                String paymentMethodId = resultAddPm.getRight();
+                String paymentMethodId = resultAddPm.getRight().getId();
 
                 zuoraApi.deletePaymentMethod(connection, EXTERNAL_NAME, paymentMethodId);
 
@@ -73,7 +72,7 @@ public class TestPaymentMethodsZuoraApi extends TestZuoraApiBase {
             public Void withConnection(ZuoraConnection connection) {
 
                 PaymentMethodPlugin detail = createPaypalPaymentMethod(null, true);
-                Either<ZuoraError, String> resultAddPm = zuoraApi.addPaymentMethod(connection, EXTERNAL_NAME, detail, true);
+                Either<ZuoraError, PaymentMethod> resultAddPm = zuoraApi.addPaymentMethod(connection, EXTERNAL_NAME, detail, true);
                 assertTrue(resultAddPm.isRight());
 
                 // Fetch account again
@@ -84,7 +83,7 @@ public class TestPaymentMethodsZuoraApi extends TestZuoraApiBase {
                 PaymentMethodConverter converter = new PaymentMethodConverter(updatedAccount);
 
 
-                String paymentMethodId = resultAddPm.getRight();
+                String paymentMethodId = resultAddPm.getRight().getId();
                 final String paypalMethodId = paymentMethodId;
 
                 Either<ZuoraError, PaymentMethod> resultGetPm = zuoraApi.getPaymentMethodById(connection, paymentMethodId);
@@ -109,7 +108,7 @@ public class TestPaymentMethodsZuoraApi extends TestZuoraApiBase {
                 updatedAccount = resultGetSnAccount.getRight();
                 converter = new PaymentMethodConverter(updatedAccount);
 
-                paymentMethodId = resultAddPm.getRight();
+                paymentMethodId = resultAddPm.getRight().getId();
                 final String creditCardMethodId = paymentMethodId;
 
 

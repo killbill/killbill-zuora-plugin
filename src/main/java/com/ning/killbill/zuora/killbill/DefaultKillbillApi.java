@@ -27,7 +27,7 @@ public class DefaultKillbillApi {
 
     public String getAccountExternalKeyFromPaymentMethodId(final UUID kbPaymentMethodId, final TenantContext tenantContext) throws PaymentPluginApiException {
         try {
-            final PaymentMethod paymentMethod = osgiKillbill.getPaymentApi().getPaymentMethodById(kbPaymentMethodId, tenantContext);
+            final PaymentMethod paymentMethod = osgiKillbill.getPaymentApi().getPaymentMethodById(kbPaymentMethodId, false, tenantContext);
             final Account account = osgiKillbill.getAccountUserApi().getAccountById(paymentMethod.getAccountId(), tenantContext);
             return account.getExternalKey();
         } catch (BillingExceptionBase e) {

@@ -24,6 +24,7 @@ import javax.servlet.Servlet;
 
 import org.osgi.framework.BundleContext;
 import org.skife.config.ConfigurationObjectFactory;
+import org.slf4j.impl.StaticLoggerBinder;
 
 import com.ning.billing.osgi.api.OSGIPluginProperties;
 import com.ning.billing.payment.plugin.api.PaymentPluginApi;
@@ -32,10 +33,11 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKill
 import com.ning.killbill.zuora.api.DefaultZuoraPrivateApi;
 import com.ning.killbill.zuora.api.ZuoraPaymentPluginApi;
 import com.ning.killbill.zuora.api.ZuoraPrivateApi;
+import com.ning.killbill.zuora.dao.ZuoraPluginDao;
 import com.ning.killbill.zuora.dao.dbi.JDBIZuoraPluginDao;
 import com.ning.killbill.zuora.dao.jpa.JPAZuoraPluginDao;
-import com.ning.killbill.zuora.dao.ZuoraPluginDao;
 import com.ning.killbill.zuora.http.ZuoraHttpServlet;
+import com.ning.killbill.zuora.killbill.DefaultKillbillApi;
 import com.ning.killbill.zuora.zuora.ConnectionFactory;
 import com.ning.killbill.zuora.zuora.ConnectionPool;
 import com.ning.killbill.zuora.zuora.ZuoraApi;
@@ -69,6 +71,9 @@ public class ZuoraActivator extends KillbillActivatorBase {
 
         super.start(context);
 
+        // Configure slf4j for libraries (e.g. config-magic)
+        StaticLoggerBinder.getSingleton().setLogService(logService);
+
         config = readConfigFromSystemProperties(DEFAULT_INSTANCE_NAME);
         mapper = new ObjectMapper();
         api = new ZuoraApi(config, logService);
@@ -79,8 +84,9 @@ public class ZuoraActivator extends KillbillActivatorBase {
                          new JPAZuoraPluginDao(dataSource.getDataSource()) :
                          new JDBIZuoraPluginDao(dataSource.getDataSource());
 
-        zuoraPaymentPluginApi = new ZuoraPaymentPluginApi(pool, api, logService, killbillAPI, zuoraPluginDao, DEFAULT_INSTANCE_NAME);
-        zuoraPrivateApi = new DefaultZuoraPrivateApi(pool, api, logService, killbillAPI, zuoraPluginDao, DEFAULT_INSTANCE_NAME);
+        final DefaultKillbillApi defaultKillbillApi = new DefaultKillbillApi(killbillAPI, logService);
+        zuoraPaymentPluginApi = new ZuoraPaymentPluginApi(pool, api, logService, defaultKillbillApi, zuoraPluginDao, DEFAULT_INSTANCE_NAME);
+        zuoraPrivateApi = new DefaultZuoraPrivateApi(pool, api, logService, defaultKillbillApi, zuoraPluginDao, DEFAULT_INSTANCE_NAME);
 
         zuoraHttpServlet =  new ZuoraHttpServlet(zuoraPrivateApi, zuoraPluginDao, mapper);
 
