@@ -272,6 +272,29 @@
                         <Bundle-Activator>com.ning.killbill.zuora.osgi.ZuoraActivator</Bundle-Activator>
                         <Export-Package></Export-Package>
                         <Import-Package>
+                            javax.net.ssl;
+                            javax.management;
+                            javax.jws;
+                            javax.activation;
+                            org.xml.sax.helpers;
+                            org.xml.sax;
+                            org.w3c.dom;
+                            org.w3c.dom.ls;
+                            javax.xml.ws;
+                            javax.xml.stream;
+                            javax.xml.bind.annotation.adapters;
+                            javax.xml.ws.spi;
+                            javax.xml.bind;
+                            javax.xml.bind.annotation;
+                            javax.xml.bind.attachment;
+                            javax.xml.datatype;
+                            javax.xml.namespace;
+                            javax.xml.parsers;
+                            javax.xml.transform;
+                            javax.xml.transform.sax;
+                            javax.xml.transform.dom;
+                            javax.xml.transform.stream;
+                            resolution:=optional;version="[0,3)",
                             *;resolution:=optional
                         </Import-Package>
                     </instructions>
@@ -331,7 +354,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 </project>

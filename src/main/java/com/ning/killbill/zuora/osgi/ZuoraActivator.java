@@ -109,6 +109,7 @@ public class ZuoraActivator extends KillbillActivatorBase {
     private void registerServlet(final BundleContext context, final ZuoraHttpServlet servlet) {
         final Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
+        props.put(OSGIPluginProperties.PLUGIN_SERVICE_INFO, PLUGIN_NAME);
         registrar.registerService(context, Servlet.class, servlet, props);
     }
 
