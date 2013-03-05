@@ -23,8 +23,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.osgi.service.log.LogService;
 
 import com.ning.billing.catalog.api.Currency;
@@ -302,6 +305,36 @@ public class ZuoraApi {
         return StringUtils.defaultIfEmpty(StringUtils.substring(account.getName(), 0, firstNameLength), "");
     }
 
+    //
+    //                           INVOICE
+    //
+    public Either<ZuoraError, List<Invoice>> getInvoicesForAccount(final ZuoraConnection connection, final Account account, @Nullable final DateTime from, @Nullable final DateTime to) {
+        // We need to round down the to, invoice date in Zuora is in the form 2011-09-29T00:00:00.000-08:00
+        final String toDate = to == null ? "" : to.toLocalDate().toDateTimeAtStartOfDay(DateTimeZone.forID("Pacific/Pitcairn")).toString();
+
+        final String query;
+        if (from == null && to != null) {
+            query = stringTemplateLoader.load("getPostedInvoicesForAccountTo")
+                                        .define("accountId", account.getId())
+                                        .define("invoiceDateTo", toDate)
+                                        .build();
+        } else if (from != null && to != null) {
+            query = stringTemplateLoader.load("getPostedInvoicesForAccountFromTo")
+                                        .define("accountId", account.getId())
+                                        .define("invoiceDateTo", toDate)
+                                        .define("invoiceDateFrom", from.toString())
+                                        .build();
+        } else {
+            throw new UnsupportedOperationException();
+        }
+
+        final Either<ZuoraError, List<Invoice>> invoicesOrError = connection.query(query);
+        if (invoicesOrError.isLeft()) {
+            return Either.left(invoicesOrError.getLeft());
+        } else {
+            return Either.right(invoicesOrError.getRight());
+        }
+    }
 
     //
     //                           PAYMENT

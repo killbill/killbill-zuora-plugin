@@ -42,6 +42,31 @@ getPostedInvoicesForAccount(accountId) ::= <<
   where Status = 'Posted' and AccountId = '<accountId>'
 >>
 
+getPostedInvoicesForAccountTo(accountId, invoiceDateTo) ::= <<
+  select
+    AccountId,
+    InvoiceNumber,
+    Amount,
+    Balance,
+    InvoiceDate,
+    PaymentAmount,
+    Status
+  from Invoice
+  where AccountId = '<accountId>' and Status = 'Posted' and InvoiceDate \< '<invoiceDateTo>'
+>>
+
+getPostedInvoicesForAccountFromTo(accountId, invoiceDateFrom, invoiceDateTo) ::= <<
+  select
+    AccountId,
+    InvoiceNumber,
+    Amount,
+    Balance,
+    InvoiceDate,
+    PaymentAmount,
+    Status
+  from Invoice
+  where AccountId = '<accountId>' and Status = 'Posted' and InvoiceDate \< '<invoiceDateTo>' and InvoiceDate \> '<invoiceDateFrom>'
+>>
 
 getInvoiceByKillbillPaymentId(paymentId) ::= <<
   select

@@ -11,6 +11,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+
 import com.ning.billing.payment.api.PaymentMethodPlugin;
 import com.ning.billing.payment.plugin.api.PaymentPluginApiException;
 import com.ning.billing.tenant.api.Tenant;
@@ -22,6 +26,7 @@ import com.ning.killbill.zuora.http.PaymentMethodJson.PaymentMethodPluginDetailJ
 import com.ning.killbill.zuora.osgi.ZuoraActivator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zuora.api.object.Invoice;
 
 public class ZuoraHttpServlet extends HttpServlet {
 
@@ -30,6 +35,7 @@ public class ZuoraHttpServlet extends HttpServlet {
     private static final String REQ_ACCOUNT_ID = "accountId";
     private static final String REQ_PM_ID = "paymentMethodId";
 
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = ISODateTimeFormat.dateTimeParser();
 
     private final ZuoraPrivateApi zuoraPrivateApi;
     private final ZuoraPluginDao zuoraPluginDao;
@@ -68,7 +74,8 @@ public class ZuoraHttpServlet extends HttpServlet {
                 final UUID paymentMethodId = UUID.fromString(paymentMethodIdParam);
 
                 handleGetPaymentMethod(req, resp, paymentMethodId, accountId, context);
-
+            } else if (api == API.INVOICES) {
+                handleGetInvoices(req, resp, accountId, context);
             } else {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknow call for " + ZuoraActivator.PLUGIN_NAME);
                 return;
@@ -176,6 +183,18 @@ public class ZuoraHttpServlet extends HttpServlet {
         return;
     }
 
+    private void handleGetInvoices(final HttpServletRequest req, final HttpServletResponse resp, final UUID accountId, final TenantContext tenantContext)
+            throws ServletException, IOException, PaymentPluginApiException {
+        final String fromString = req.getParameter("from");
+        final DateTime from = (fromString != null) ? DATE_TIME_FORMATTER.parseDateTime(fromString) : null;
+        final String toString = req.getParameter("to");
+        final DateTime to = (toString != null) ? DATE_TIME_FORMATTER.parseDateTime(toString) : null;
+
+        final List<Invoice> zuoraInvoices = zuoraPrivateApi.getInvoices(accountId, from, to, tenantContext);
+
+        resp.getOutputStream().write(mapper.writeValueAsBytes(zuoraInvoices));
+        resp.setStatus(HttpServletResponse.SC_OK);
+    }
 
     private API getAPI(final HttpServletRequest req) throws ServletException {
         // Remove the "/"
@@ -215,7 +234,8 @@ public class ZuoraHttpServlet extends HttpServlet {
     private enum API {
         ACCOUNT("account"),
         PAYMENT_METHOD("paymentMethod"),
-        PAYMENT_METHODS("paymentMethods");
+        PAYMENT_METHODS("paymentMethods"),
+        INVOICES("invoices");
 
         String name;
 

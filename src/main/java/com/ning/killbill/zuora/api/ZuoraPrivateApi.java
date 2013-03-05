@@ -3,9 +3,15 @@ package com.ning.killbill.zuora.api;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
+import org.joda.time.DateTime;
+
 import com.ning.billing.payment.api.PaymentMethodPlugin;
 import com.ning.billing.payment.plugin.api.PaymentPluginApiException;
 import com.ning.billing.util.callcontext.TenantContext;
+
+import com.zuora.api.object.Invoice;
 
 /**
  * Additional APIs exported by the plugin which are not seen by Killbill
@@ -55,4 +61,15 @@ public interface ZuoraPrivateApi {
      */
     public String getExternalPaymentMethodId(UUID paymentMethodId)
             throws PaymentPluginApiException;
+
+    /**
+     * Get Zuora invoices
+     *
+     * @param accountId the Killbill accountId
+     * @param from      earliest invoice posted date
+     * @param to        latest invoice posted date
+     * @param context   tenant context
+     * @return Zuora invoices
+     */
+    public List<Invoice> getInvoices(UUID accountId, @Nullable DateTime from, @Nullable DateTime to, TenantContext context) throws PaymentPluginApiException;
 }
