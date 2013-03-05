@@ -16,7 +16,7 @@
 <assembly>
     <!-- Since assembly plugin 2.2 this has to have an id, so use the appendAssemblyId parameter to the assembly
 	     plugin to prevent the id from being used as a classifier for the artifact -->
-    <id>zuora-plugin-archive</id>
+    <id>killbill-plugin-tar</id>
     <formats>
         <format>tar.gz</format>
     </formats>

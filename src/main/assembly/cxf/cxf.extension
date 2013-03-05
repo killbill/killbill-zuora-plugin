@@ -1,0 +1,5 @@
+META-INF/cxf/cxf-extension-jaxws.xml
+META-INF/cxf/cxf-extension-soap.xml
+META-INF/cxf/cxf-extension-xml.xml
+META-INF/cxf/cxf-extension-addr.xml
+META-INF/cxf/cxf-extension-http.xml
