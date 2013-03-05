@@ -3,6 +3,9 @@ package com.ning.killbill.zuora.api;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
+import org.joda.time.DateTime;
 import org.osgi.service.log.LogService;
 
 import com.ning.billing.payment.api.PaymentMethodPlugin;
@@ -20,6 +23,7 @@ import com.ning.killbill.zuora.zuora.ZuoraApi;
 import com.ning.killbill.zuora.zuora.ZuoraConnection;
 import com.ning.killbill.zuora.zuora.ZuoraError;
 
+import com.zuora.api.object.Invoice;
 import com.zuora.api.object.PaymentMethod;
 
 public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivateApi {
@@ -121,5 +125,28 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
             return entity.getZuoraPaymentMethodId();
         }
         return null;
+    }
+
+    @Override
+    public List<Invoice> getInvoices(final UUID accountId, @Nullable final DateTime from, @Nullable final DateTime to, final TenantContext context) throws PaymentPluginApiException {
+        final String externalKey = defaultKillbillApi.getAccountExternalKeyFromAccountId(accountId, context);
+        final Either<ZuoraError, List<Invoice>> result = withConnection(new ConnectionCallback<Either<ZuoraError, List<Invoice>>>() {
+            @Override
+            public Either<ZuoraError, List<Invoice>> withConnection(final ZuoraConnection connection) {
+                final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = zuoraApi.getByAccountName(connection, externalKey);
+
+                if (accountOrError.isLeft()) {
+                    return convert(accountOrError, errorConverter, null);
+                } else {
+                    final com.zuora.api.object.Account account = accountOrError.getRight();
+                    return zuoraApi.getInvoicesForAccount(connection, account, from, to);
+                }
+            }
+        });
+        if (result.isLeft()) {
+            throw new PaymentPluginApiException(result.getLeft().getType(), result.getLeft().getMessage());
+        } else {
+            return result.getRight();
+        }
     }
 }
