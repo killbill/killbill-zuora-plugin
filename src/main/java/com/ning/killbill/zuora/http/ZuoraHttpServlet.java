@@ -35,7 +35,7 @@ public class ZuoraHttpServlet extends HttpServlet {
     private static final String PLUGIN_PATH_ROOT = "/plugins";
     private static final String REQ_ACCOUNT_ID = "accountId";
     private static final String REQ_PM_ID = "paymentMethodId";
-    private static final String REQ_INVOICE_ID = "invoiceNumber";
+    private static final String REQ_INVOICE_ID = "invoiceId";
     private static final String REQ_INVOICE_NUMBER = "invoiceNumber";
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = ISODateTimeFormat.dateTimeParser();
