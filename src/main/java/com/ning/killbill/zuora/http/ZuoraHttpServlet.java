@@ -203,10 +203,9 @@ public class ZuoraHttpServlet extends HttpServlet {
 
     private void handleGetInvoice(final HttpServletRequest req, final HttpServletResponse resp, final UUID accountId, final TenantContext tenantContext)
             throws ServletException, IOException, PaymentPluginApiException {
-        final String kbAccountId = req.getParameter(REQ_ACCOUNT_ID);
         final String zuoraInvoiceNumber = req.getParameter(REQ_INVOICE_NUMBER);
 
-        final String invoice = zuoraPrivateApi.getInvoiceContent(UUID.fromString(kbAccountId), zuoraInvoiceNumber, tenantContext);
+        final String invoice = zuoraPrivateApi.getInvoiceContent(accountId, zuoraInvoiceNumber, tenantContext);
 
         resp.getOutputStream().write(mapper.writeValueAsBytes(invoice));
         resp.setStatus(HttpServletResponse.SC_OK);
