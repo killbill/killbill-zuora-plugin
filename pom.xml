@@ -313,6 +313,12 @@
                             javax.xml.transform.sax;
                             javax.xml.transform.dom;
                             javax.xml.transform.stream;
+                            javax.xml.xpath;
+                            javax.naming.directory;
+                            javax.naming.event;
+                            javax.naming.ldap;
+                            javax.naming.spi;
+                            javax.naming;
                             version="[0,3)",
                             *;resolution:=optional
                         </Import-Package>

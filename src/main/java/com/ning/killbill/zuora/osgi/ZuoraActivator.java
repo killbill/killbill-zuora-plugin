@@ -21,6 +21,7 @@ import java.util.Hashtable;
 import java.util.Properties;
 
 import javax.servlet.Servlet;
+import javax.servlet.http.HttpServlet;
 
 import org.osgi.framework.BundleContext;
 import org.skife.config.ConfigurationObjectFactory;
@@ -111,7 +112,7 @@ public class ZuoraActivator extends KillbillActivatorBase {
     }
 
 
-    private void registerServlet(final BundleContext context, final ZuoraHttpServlet servlet) {
+    private void registerServlet(final BundleContext context, final HttpServlet servlet) {
         final Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
         props.put(OSGIPluginProperties.PLUGIN_SERVICE_INFO, PLUGIN_NAME);
