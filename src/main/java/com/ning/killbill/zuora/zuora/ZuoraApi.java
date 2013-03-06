@@ -336,6 +336,49 @@ public class ZuoraApi {
         }
     }
 
+    public Either<ZuoraError, String> getInvoiceContent(final ZuoraConnection connection, final Account account, final String invoiceNumber) {
+        final String query = stringTemplateLoader.load("getInvoiceContent")
+                                                 .define("invoiceNumber", invoiceNumber)
+                                                 .build();
+        final Either<ZuoraError, Invoice> invoicesOrError = connection.querySingle(query);
+        if (invoicesOrError.isLeft()) {
+            return Either.left(invoicesOrError.getLeft());
+        } else {
+            final Invoice invoice = invoicesOrError.getRight();
+            if (!invoice.getAccountId().equals(account.getId())) {
+                return Either.right(null);
+            } else {
+                return Either.right(invoice.getBody());
+            }
+        }
+    }
+
+    public Either<ZuoraError, Payment> getLastPaymentForInvoice(final ZuoraConnection connection, final String invoiceId) {
+        final String query = stringTemplateLoader.load("getInvoicePaymentsForInvoice")
+                                                 .define("invoiceId", invoiceId)
+                                                 .build();
+        final Either<ZuoraError, List<InvoicePayment>> invoicePaymentsOrError = connection.query(query);
+        if (invoicePaymentsOrError.isLeft()) {
+            return Either.left(invoicePaymentsOrError.getLeft());
+        } else {
+            final List<InvoicePayment> invoicePayments = invoicePaymentsOrError.getRight();
+            Payment result = null;
+            for (final InvoicePayment ip : invoicePayments) {
+                final Either<ZuoraError, Payment> paymentOrError = getPaymentById(connection, ip.getPaymentId());
+                if (paymentOrError.isLeft()) {
+                    return Either.left(paymentOrError.getLeft());
+                } else {
+                    final Payment payment = paymentOrError.getRight();
+                    if (result == null || result.getCreatedDate().isBefore(payment.getCreatedDate())) {
+                        result = payment;
+                    }
+                }
+            }
+
+            return Either.right(result);
+        }
+    }
+
     //
     //                           PAYMENT
     //

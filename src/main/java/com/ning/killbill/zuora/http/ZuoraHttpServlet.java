@@ -27,12 +27,15 @@ import com.ning.killbill.zuora.osgi.ZuoraActivator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zuora.api.object.Invoice;
+import com.zuora.api.object.Payment;
 
 public class ZuoraHttpServlet extends HttpServlet {
 
     private static final String PLUGIN_PATH = "/plugins";
     private static final String REQ_ACCOUNT_ID = "accountId";
     private static final String REQ_PM_ID = "paymentMethodId";
+    private static final String REQ_INVOICE_ID = "invoiceNumber";
+    private static final String REQ_INVOICE_NUMBER = "invoiceNumber";
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = ISODateTimeFormat.dateTimeParser();
 
@@ -73,6 +76,10 @@ public class ZuoraHttpServlet extends HttpServlet {
                 final UUID paymentMethodId = UUID.fromString(paymentMethodIdParam);
 
                 handleGetPaymentMethod(req, resp, paymentMethodId, accountId, context);
+            } else if (api == API.INVOICE_LAST_PAYMENT) {
+                handleGetInvoiceLastPayment(req, resp, context);
+            } else if (api == API.INVOICE) {
+                handleGetInvoice(req, resp, accountId, context);
             } else if (api == API.INVOICES) {
                 handleGetInvoices(req, resp, accountId, context);
             } else {
@@ -183,6 +190,28 @@ public class ZuoraHttpServlet extends HttpServlet {
         return;
     }
 
+    private void handleGetInvoiceLastPayment(final HttpServletRequest req, final HttpServletResponse resp, final TenantContext tenantContext)
+            throws ServletException, IOException, PaymentPluginApiException {
+        final String zuoraInvoiceId = req.getParameter(REQ_INVOICE_ID);
+
+        final Payment payment = zuoraPrivateApi.getLastPaymentForInvoice(zuoraInvoiceId, tenantContext);
+        final ZuoraPaymentJson zuoraPaymentJson = new ZuoraPaymentJson(payment.getEffectiveDate(), payment.getStatus(), payment.getGatewayResponse(), payment.getPaymentMethodId());
+
+        resp.getOutputStream().write(mapper.writeValueAsBytes(zuoraPaymentJson));
+        resp.setStatus(HttpServletResponse.SC_OK);
+    }
+
+    private void handleGetInvoice(final HttpServletRequest req, final HttpServletResponse resp, final UUID accountId, final TenantContext tenantContext)
+            throws ServletException, IOException, PaymentPluginApiException {
+        final String kbAccountId = req.getParameter(REQ_ACCOUNT_ID);
+        final String zuoraInvoiceNumber = req.getParameter(REQ_INVOICE_NUMBER);
+
+        final String invoice = zuoraPrivateApi.getInvoiceContent(UUID.fromString(kbAccountId), zuoraInvoiceNumber, tenantContext);
+
+        resp.getOutputStream().write(mapper.writeValueAsBytes(invoice));
+        resp.setStatus(HttpServletResponse.SC_OK);
+    }
+
     private void handleGetInvoices(final HttpServletRequest req, final HttpServletResponse resp, final UUID accountId, final TenantContext tenantContext)
             throws ServletException, IOException, PaymentPluginApiException {
         final String fromString = req.getParameter("from");
@@ -233,6 +262,8 @@ public class ZuoraHttpServlet extends HttpServlet {
         ACCOUNT("account"),
         PAYMENT_METHOD("paymentMethod"),
         PAYMENT_METHODS("paymentMethods"),
+        INVOICE_LAST_PAYMENT("invoice/lastPayment"),
+        INVOICE("invoice"),
         INVOICES("invoices");
 
         String name;

@@ -68,6 +68,14 @@ getPostedInvoicesForAccountFromTo(accountId, invoiceDateFrom, invoiceDateTo) ::=
   where AccountId = '<accountId>' and Status = 'Posted' and InvoiceDate \< '<invoiceDateTo>' and InvoiceDate \> '<invoiceDateFrom>'
 >>
 
+getInvoiceContent(invoiceNumber) ::= <<
+  select
+    AccountId,
+    Body
+  from Invoice
+  where InvoiceNumber = '<invoiceNumber>'
+>>
+
 getInvoiceByKillbillPaymentId(paymentId) ::= <<
   select
     Id,
@@ -176,7 +184,6 @@ getProcessedPaymentsForAccount(accountId) ::= <<
   from Payment where AccountId = '<accountId>' and Status = 'Processed'
 >>
 
-
 getRefundFromId(id) ::= <<
   select
     Id,
@@ -205,6 +212,14 @@ getInvoicePayments(paymentId) ::= <<
       InvoiceId,
       RefundAmount
     from InvoicePayment where PaymentId = '<paymentId>'
+>>
+
+getInvoicePaymentsForInvoice(invoiceId) ::= <<
+    select
+      Amount,
+      PaymentId
+    from InvoicePayment
+    where InvoiceId = '<invoiceId>'
 >>
 
 getPaymentMethods(accountId) ::= <<

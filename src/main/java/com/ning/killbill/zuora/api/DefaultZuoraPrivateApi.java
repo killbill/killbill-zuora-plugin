@@ -24,6 +24,7 @@ import com.ning.killbill.zuora.zuora.ZuoraConnection;
 import com.ning.killbill.zuora.zuora.ZuoraError;
 
 import com.zuora.api.object.Invoice;
+import com.zuora.api.object.Payment;
 import com.zuora.api.object.PaymentMethod;
 
 public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivateApi {
@@ -149,4 +150,43 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
             return result.getRight();
         }
     }
+
+    @Override
+    public String getInvoiceContent(final UUID accountId, final String invoiceNumber, final TenantContext context) throws PaymentPluginApiException {
+        final String externalKey = defaultKillbillApi.getAccountExternalKeyFromAccountId(accountId, context);
+        final Either<ZuoraError, String> result = withConnection(new ConnectionCallback<Either<ZuoraError, String>>() {
+            @Override
+            public Either<ZuoraError, String> withConnection(final ZuoraConnection connection) {
+                final Either<ZuoraError, com.zuora.api.object.Account> accountOrError = zuoraApi.getByAccountName(connection, externalKey);
+
+                if (accountOrError.isLeft()) {
+                    return convert(accountOrError, errorConverter, null);
+                } else {
+                    final com.zuora.api.object.Account account = accountOrError.getRight();
+                    return zuoraApi.getInvoiceContent(connection, account, invoiceNumber);
+                }
+            }
+        });
+        if (result.isLeft()) {
+            throw new PaymentPluginApiException(result.getLeft().getType(), result.getLeft().getMessage());
+        } else {
+            return result.getRight();
+        }
+    }
+
+    @Override
+    public Payment getLastPaymentForInvoice(final String invoiceId, final TenantContext context) throws PaymentPluginApiException {
+        final Either<ZuoraError, Payment> result = withConnection(new ConnectionCallback<Either<ZuoraError, Payment>>() {
+            @Override
+            public Either<ZuoraError, Payment> withConnection(final ZuoraConnection connection) {
+                return zuoraApi.getLastPaymentForInvoice(connection, invoiceId);
+            }
+        });
+        if (result.isLeft()) {
+            throw new PaymentPluginApiException(result.getLeft().getType(), result.getLeft().getMessage());
+        } else {
+            return result.getRight();
+        }
+    }
+
 }
