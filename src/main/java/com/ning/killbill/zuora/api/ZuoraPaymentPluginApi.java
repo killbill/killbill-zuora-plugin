@@ -169,11 +169,17 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     @Override
     public void deletePaymentMethod(final UUID kbPaymentMethodId, final CallContext context) throws PaymentPluginApiException {
 
+        final PaymentMethodEntity entity = zuoraPluginDao.getPaymentMethodById(kbPaymentMethodId.toString());
+        if (entity == null) {
+            // Ignore, there is nothing to delete on zuora side, looks like...
+            return;
+        }
+        final String zuoraPaymentMethodId = entity.getZuoraPaymentMethodId();
         final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromPaymentMethodId(kbPaymentMethodId, context);
         final Either<ZuoraError, Void> result = withConnection(new ConnectionCallback<Either<ZuoraError, Void>>() {
             @Override
             public Either<ZuoraError, Void> withConnection(final ZuoraConnection connection) {
-                return convert(zuoraApi.deletePaymentMethod(connection, accountExternalKey, kbPaymentMethodId.toString()), errorConverter, null);
+                return convert(zuoraApi.deletePaymentMethod(connection, accountExternalKey, zuoraPaymentMethodId), errorConverter, null);
             }
         });
         if (result.isLeft()) {

@@ -31,7 +31,8 @@ import com.zuora.api.object.Payment;
 
 public class ZuoraHttpServlet extends HttpServlet {
 
-    private static final String PLUGIN_PATH = "/plugins";
+
+    private static final String PLUGIN_PATH_ROOT = "/plugins";
     private static final String REQ_ACCOUNT_ID = "accountId";
     private static final String REQ_PM_ID = "paymentMethodId";
     private static final String REQ_INVOICE_ID = "invoiceNumber";
@@ -125,7 +126,6 @@ public class ZuoraHttpServlet extends HttpServlet {
     private void handleCreateAccountCreation(HttpServletRequest req, HttpServletResponse resp, UUID accountId, TenantContext tenantContext)
             throws ServletException, IOException, PaymentPluginApiException {
         final String zuoraAccountId = zuoraPrivateApi.createPaymentProviderAccount(accountId, tenantContext);
-        // STEPH
         resp.getOutputStream().write(zuoraAccountId.getBytes());
         resp.setStatus(HttpServletResponse.SC_CREATED);
     }
@@ -226,11 +226,13 @@ public class ZuoraHttpServlet extends HttpServlet {
     }
 
     private API getAPI(final HttpServletRequest req) throws ServletException {
-        if ((PLUGIN_PATH + "/" + ZuoraActivator.PLUGIN_NAME + "/" + API.ACCOUNT.getName()).equals(req.getPathInfo())) {
+        // Remove the "/"
+        final String api = req.getPathInfo().substring(1, req.getPathInfo().length());
+        if ((API.ACCOUNT.getName()).equals(api)) {
             return API.ACCOUNT;
-        } else if ((PLUGIN_PATH + "/" + ZuoraActivator.PLUGIN_NAME + "/" + API.PAYMENT_METHOD.getName()).equals(req.getPathInfo())) {
+        } else if ((API.PAYMENT_METHOD.getName()).equals(api)) {
             return API.PAYMENT_METHOD;
-        } else if ((PLUGIN_PATH + "/" + ZuoraActivator.PLUGIN_NAME + "/" + API.PAYMENT_METHODS.getName()).equals(req.getPathInfo())) {
+        } else if ((API.PAYMENT_METHODS.getName()).equals(api)) {
             return API.PAYMENT_METHODS;
         } else {
             return null;

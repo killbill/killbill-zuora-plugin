@@ -21,6 +21,7 @@ import java.util.Hashtable;
 import java.util.Properties;
 
 import javax.servlet.Servlet;
+import javax.servlet.http.HttpServlet;
 
 import org.osgi.framework.BundleContext;
 import org.skife.config.ConfigurationObjectFactory;
@@ -45,7 +46,6 @@ import com.ning.killbill.zuora.zuora.setup.ZuoraConfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-
 
 /*
    pluginName = com.ning.killbill.zuora-plugin
@@ -112,9 +112,10 @@ public class ZuoraActivator extends KillbillActivatorBase {
     }
 
 
-    private void registerServlet(final BundleContext context, final ZuoraHttpServlet servlet) {
+    private void registerServlet(final BundleContext context, final HttpServlet servlet) {
         final Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
+        props.put(OSGIPluginProperties.PLUGIN_SERVICE_INFO, PLUGIN_NAME);
         registrar.registerService(context, Servlet.class, servlet, props);
     }
 

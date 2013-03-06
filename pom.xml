@@ -81,6 +81,16 @@
             <version>4.3.1</version>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+            <version>4.3.1</version>
+        </dependency>
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>3.0.1</version>
@@ -105,11 +115,6 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>osgi-over-slf4j</artifactId>
-            <version>1.7.2</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -278,6 +283,43 @@
                         <Bundle-Activator>com.ning.killbill.zuora.osgi.ZuoraActivator</Bundle-Activator>
                         <Export-Package></Export-Package>
                         <Import-Package>
+                            org.xml.sax.helpers;
+                            org.xml.sax;
+                            org.w3c.dom;
+                            org.w3c.dom.ls;
+                            javax.net.ssl;
+                            javax.management;
+                            javax.jws;
+                            javax.activation;
+                            javax.xml.soap;
+                            javax.xml.ws;
+                            javax.xml.ws.spi;
+                            javax.xml.ws.handler.soap;
+                            javax.xml.ws.handler;
+                            javax.xml.ws.http;
+                            javax.xml.ws.soap;
+                            javax.xml.ws.wsaddressing;
+                            javax.xml.stream;
+                            javax.xml.stream.events;
+                            javax.xml.stream.util;
+                            javax.xml.bind.annotation.adapters;
+                            javax.xml.bind;
+                            javax.xml.bind.annotation;
+                            javax.xml.bind.attachment;
+                            javax.xml.datatype;
+                            javax.xml.namespace;
+                            javax.xml.parsers;
+                            javax.xml.transform;
+                            javax.xml.transform.sax;
+                            javax.xml.transform.dom;
+                            javax.xml.transform.stream;
+                            javax.xml.xpath;
+                            javax.naming.directory;
+                            javax.naming.event;
+                            javax.naming.ldap;
+                            javax.naming.spi;
+                            javax.naming;
+                            version="[0,3)",
                             *;resolution:=optional
                         </Import-Package>
                     </instructions>
@@ -293,37 +335,28 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>1.4</version>
+                <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
+
                     <execution>
-                        <id>zuora-plugin-withdep</id>
+                        <id>jar-with-dep</id>
                         <goals>
-                            <goal>shade</goal>
+                            <goal>single</goal>
                         </goals>
                         <phase>package</phase>
                         <configuration>
-                            <createSourcesJar>true</createSourcesJar>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>jar-with-dependencies</shadedClassifierName>
-                            <filters>
-                                <filter>
-                                    <artifact>${project.groupId}:${project.artifactId}</artifact>
-                                    <excludes>
-                                        <exclude>log4j.xml</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
+                            <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>src/main/assembly/jar-assembly.xml</descriptor>
+                            </descriptors>
+                            <archive>
+                                <manifestFile>target/classes/META-INF/MANIFEST.MF</manifestFile>
+                            </archive>
                         </configuration>
                     </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
                     <execution>
-                        <id>assemble-zuora-plugin</id>
+                        <id>killbill-plugin-tar</id>
                         <goals>
                             <goal>single</goal>
                         </goals>
@@ -331,13 +364,12 @@
                         <configuration>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptors>
-                                <descriptor>src/main/assembly/assembly.xml</descriptor>
+                                <descriptor>src/main/assembly/tar-assembly.xml</descriptor>
                             </descriptors>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 </project>

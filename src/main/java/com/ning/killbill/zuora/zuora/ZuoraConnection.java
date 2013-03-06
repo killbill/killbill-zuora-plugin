@@ -113,6 +113,7 @@ public class ZuoraConnection {
             password = config.getZuoraPassword();
         }
 
+
         LoginResult session = stub.login(user, password);
 
         header.setSession(session.getSession());
