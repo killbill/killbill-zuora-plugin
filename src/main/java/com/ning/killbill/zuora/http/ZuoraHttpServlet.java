@@ -206,9 +206,12 @@ public class ZuoraHttpServlet extends HttpServlet {
         final String zuoraInvoiceNumber = req.getParameter(REQ_INVOICE_NUMBER);
 
         final String invoice = zuoraPrivateApi.getInvoiceContent(accountId, zuoraInvoiceNumber, tenantContext);
-
-        resp.getOutputStream().write(mapper.writeValueAsBytes(invoice));
-        resp.setStatus(HttpServletResponse.SC_OK);
+        if (invoice == null) {
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        } else {
+            resp.getOutputStream().write(invoice.getBytes());
+            resp.setStatus(HttpServletResponse.SC_OK);
+        }
     }
 
     private void handleGetInvoices(final HttpServletRequest req, final HttpServletResponse resp, final UUID accountId, final TenantContext tenantContext)
@@ -225,17 +228,16 @@ public class ZuoraHttpServlet extends HttpServlet {
     }
 
     private API getAPI(final HttpServletRequest req) throws ServletException {
+
         // Remove the "/"
         final String api = req.getPathInfo().substring(1, req.getPathInfo().length());
-        if ((API.ACCOUNT.getName()).equals(api)) {
-            return API.ACCOUNT;
-        } else if ((API.PAYMENT_METHOD.getName()).equals(api)) {
-            return API.PAYMENT_METHOD;
-        } else if ((API.PAYMENT_METHODS.getName()).equals(api)) {
-            return API.PAYMENT_METHODS;
-        } else {
-            return null;
+
+        for (API cur : API.values()) {
+            if (cur.getName().equals(api)) {
+                return cur;
+            }
         }
+        return null;
     }
 
     private TenantContext createTenantContext(final ServletRequest request) {

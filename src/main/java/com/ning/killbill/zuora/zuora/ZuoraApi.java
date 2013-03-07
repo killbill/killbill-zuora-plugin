@@ -345,7 +345,7 @@ public class ZuoraApi {
             return Either.left(invoicesOrError.getLeft());
         } else {
             final Invoice invoice = invoicesOrError.getRight();
-            if (!invoice.getAccountId().equals(account.getId())) {
+            if (invoice == null || !invoice.getAccountId().equals(account.getId())) {
                 return Either.right(null);
             } else {
                 return Either.right(invoice.getBody());

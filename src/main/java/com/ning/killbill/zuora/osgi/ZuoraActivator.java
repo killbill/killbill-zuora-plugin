@@ -45,6 +45,7 @@ import com.ning.killbill.zuora.zuora.ZuoraApi;
 import com.ning.killbill.zuora.zuora.setup.ZuoraConfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.collect.ImmutableMap;
 
 /*
@@ -76,6 +77,7 @@ public class ZuoraActivator extends KillbillActivatorBase {
 
         config = readConfigFromSystemProperties(DEFAULT_INSTANCE_NAME);
         mapper = new ObjectMapper();
+        mapper.registerModule(new JodaModule());
         api = new ZuoraApi(config, logService);
         factory = new ConnectionFactory(config, api, logService);
         pool = new ConnectionPool(factory, config);
