@@ -36,7 +36,7 @@
     </scm>
 
     <properties>
-        <killbill.version>0.1.56-SNAPSHOT</killbill.version>
+        <killbill.version>0.1.59</killbill.version>
     </properties>
     <dependencies>
         <dependency>
