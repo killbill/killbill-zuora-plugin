@@ -30,9 +30,9 @@
     <name>zuora-plugin</name>
 
     <scm>
-        <connection>git@github.com:killbill/killbill-zuora-plugin.git/tags/zuora-plugin-1.0.1</connection>
-        <url>https://github.com/killbill/killbill-zuora-plugin.git/tags/zuora-plugin-1.0.1</url>
-      <developerConnection>scm:svn:https://svn.sonatype.org/spice/tags/zuora-plugin-1.0.1</developerConnection>
+        <connection>scm:git:git://github.com/killbill/killbill-zuora-plugin.git</connection>
+        <url>https://github.com/killbill/killbill-zuora-plugin.git/tree/master</url>
+      <developerConnection>scm:git:git@github.com/killbill/killbill-zuora-plugin.git</developerConnection>
   </scm>
 
     <properties>
