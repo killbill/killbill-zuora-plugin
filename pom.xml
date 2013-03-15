@@ -32,7 +32,7 @@
     <scm>
         <connection>scm:git:git://github.com/killbill/killbill-zuora-plugin.git</connection>
         <url>https://github.com/killbill/killbill-zuora-plugin.git/tree/master</url>
-      <developerConnection>scm:git:git@github.com/killbill/killbill-zuora-plugin.git</developerConnection>
+      <developerConnection>scm:git:git@github.com:killbill/killbill-zuora-plugin.git</developerConnection>
   </scm>
 
     <properties>
