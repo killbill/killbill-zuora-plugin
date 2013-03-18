@@ -4,13 +4,13 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import com.ning.killbill.zuora.dao.ZuoraPluginDao;
-import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
-
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.IDBI;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
+
+import com.ning.killbill.zuora.dao.ZuoraPluginDao;
+import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 
 public class JDBIZuoraPluginDao implements ZuoraPluginDao {
 
@@ -80,12 +80,16 @@ public class JDBIZuoraPluginDao implements ZuoraPluginDao {
         paymentMethodEntitySqlDao.inTransaction(new Transaction<Void, PaymentMethodEntitySqlDao>() {
             @Override
             public Void inTransaction(final PaymentMethodEntitySqlDao transactional, final TransactionStatus status) throws Exception {
-                List<PaymentMethodEntity> old = transactional.getByAccountId(newPms.get(0).getKbAccountId());
-                for (PaymentMethodEntity cur : old) {
-                    transactional.deleteById(cur.getKbPaymentMethodId());
-                }
-                for (PaymentMethodEntity cur : newPms) {
-                    transactional.insert(cur);
+
+                final String accountId = (newPms != null && newPms.size() > 0) ? newPms.get(0).getKbAccountId() : null;
+                if (accountId != null) {
+                    final List<PaymentMethodEntity> old = transactional.getByAccountId(accountId);
+                    for (PaymentMethodEntity cur : old) {
+                        transactional.deleteById(cur.getKbPaymentMethodId());
+                    }
+                    for (PaymentMethodEntity cur : newPms) {
+                        transactional.insert(cur);
+                    }
                 }
                 return null;
             }
