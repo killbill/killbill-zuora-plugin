@@ -79,10 +79,10 @@ public class TestZuoraPaymentPluginApi {
         // Retrieve by account
         verifyPaymentMethods(kbPaymentMethodId, zuoraPaymentMethodId, false, 1);
 
-        zuoraPaymentPluginApi.setDefaultPaymentMethod(kbPaymentMethodId, callContext);
+        zuoraPaymentPluginApi.setDefaultPaymentMethod(kbAccountId, kbPaymentMethodId, callContext);
         verifyPaymentMethods(kbPaymentMethodId, zuoraPaymentMethodId, true, 1);
 
-        zuoraPaymentPluginApi.deletePaymentMethod(kbPaymentMethodId, callContext);
+        zuoraPaymentPluginApi.deletePaymentMethod(kbAccountId, kbPaymentMethodId, callContext);
         verifyPaymentMethods(0);
     }
 

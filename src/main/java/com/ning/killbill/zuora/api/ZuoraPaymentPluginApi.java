@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 
 import org.osgi.service.log.LogService;
 
+import com.ning.billing.catalog.api.Currency;
 import com.ning.billing.payment.api.PaymentMethodPlugin;
 import com.ning.billing.payment.plugin.api.PaymentInfoPlugin;
 import com.ning.billing.payment.plugin.api.PaymentMethodInfoPlugin;
@@ -64,7 +65,7 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
 
 
     @Override
-    public PaymentInfoPlugin processPayment(final UUID kbPaymentId, final UUID kbPaymentMethodId, final BigDecimal amount, final CallContext context) throws PaymentPluginApiException {
+    public PaymentInfoPlugin processPayment(final UUID kbAccountId, final UUID kbPaymentId, final UUID kbPaymentMethodId, final BigDecimal amount, final Currency currency, final CallContext context) throws PaymentPluginApiException {
 
         final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromPaymentMethodId(kbPaymentMethodId, context);
         final Either<ZuoraError, PaymentInfoPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentInfoPlugin>>() {
@@ -81,7 +82,7 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     }
 
     @Override
-    public PaymentInfoPlugin getPaymentInfo(final UUID kbPaymentId, final TenantContext context) throws PaymentPluginApiException {
+    public PaymentInfoPlugin getPaymentInfo(final UUID kbAccountId, final UUID kbPaymentId, final TenantContext context) throws PaymentPluginApiException {
 
         final Either<ZuoraError, PaymentInfoPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentInfoPlugin>>() {
             @Override
@@ -97,7 +98,7 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     }
 
     @Override
-    public RefundInfoPlugin processRefund(final UUID kbPaymentId, final BigDecimal refundAmount, final CallContext context) throws PaymentPluginApiException {
+    public RefundInfoPlugin processRefund(final UUID kbAccountId, final UUID kbPaymentId, final BigDecimal refundAmount, final Currency currency, final CallContext context) throws PaymentPluginApiException {
 
         final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromPaymentId(kbPaymentId, context);
         final Either<ZuoraError, RefundInfoPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, RefundInfoPlugin>>() {
@@ -167,7 +168,7 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     }
 
     @Override
-    public void deletePaymentMethod(final UUID kbPaymentMethodId, final CallContext context) throws PaymentPluginApiException {
+    public void deletePaymentMethod(final UUID kbAccountId, final UUID kbPaymentMethodId, final CallContext context) throws PaymentPluginApiException {
 
         final PaymentMethodEntity entity = zuoraPluginDao.getPaymentMethodById(kbPaymentMethodId.toString());
         if (entity == null) {
@@ -224,7 +225,7 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     }
 
     @Override
-    public void setDefaultPaymentMethod(final UUID kbPaymentMethodId, final CallContext context) throws PaymentPluginApiException {
+    public void setDefaultPaymentMethod(final UUID kbAccountId, final UUID kbPaymentMethodId, final CallContext context) throws PaymentPluginApiException {
         final PaymentMethodEntity paymentMethodEntity = zuoraPluginDao.getPaymentMethodById(kbPaymentMethodId.toString());
         if (paymentMethodEntity == null) {
             return;
@@ -288,7 +289,7 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     }
 
     @Override
-    public void resetPaymentMethods(final List<PaymentMethodInfoPlugin> paymentMethods) throws PaymentPluginApiException {
+    public void resetPaymentMethods(final UUID kbAccountId, final List<PaymentMethodInfoPlugin> paymentMethods) throws PaymentPluginApiException {
 
         final List<PaymentMethodEntity> restInput = ImmutableList.<PaymentMethodEntity>copyOf(Collections2.transform(paymentMethods, new Function<PaymentMethodInfoPlugin, PaymentMethodEntity>() {
             @Override
