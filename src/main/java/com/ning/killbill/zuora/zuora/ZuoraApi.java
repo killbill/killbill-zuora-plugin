@@ -397,6 +397,29 @@ public class ZuoraApi {
         }
     }
 
+    public Either<ZuoraError, Payment> getPaymentForKillbillPayment(ZuoraConnection connection, String accountKey, String kbPaymentId) {
+
+        Either<ZuoraError, Account> zuoraAccountOrError = getByAccountName(connection, accountKey);
+        if (zuoraAccountOrError.isLeft()) {
+            logService.log(LogService.LOG_WARNING, String.format("Could not retrieve zuora account for %s", accountKey));
+            return Either.left(zuoraAccountOrError.getLeft());
+        }
+
+        String accountId = zuoraAccountOrError.getRight().getId();
+        Either<ZuoraError, List<Payment>> paymentAccounts = getProcessedPaymentsForAccount(connection, accountId);
+        if (paymentAccounts.isLeft()) {
+            return Either.left(paymentAccounts.getLeft());
+        }
+
+        for (Payment cur : paymentAccounts.getRight()) {
+            if (cur.getComment() != null && cur.getComment().equals(kbPaymentId) && cur.getStatus().equals("processed")) {
+                return Either.right(cur);
+            }
+        }
+        return Either.left(new ZuoraError(ZuoraError.ERROR_NOTFOUND, "cannot find zuora payment"));
+    }
+
+
     public Either<ZuoraError, List<Payment>> getProcessedPaymentsForAccount(ZuoraConnection connection, String accountId) {
         final String query = stringTemplateLoader.load("getProcessedPaymentsForAccount")
                                                  .define("accountId", accountId)
@@ -775,7 +798,7 @@ public class ZuoraApi {
         }
     }
 
-    private String[] parseExpirationDate(String expirationDate) {
+    public static String[] parseExpirationDate(String expirationDate) {
         return (expirationDate != null) ? expirationDate.split("-") : null;
     }
 

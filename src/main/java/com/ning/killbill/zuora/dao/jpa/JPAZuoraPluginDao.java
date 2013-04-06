@@ -12,6 +12,7 @@ import javax.persistence.Query;
 import javax.sql.DataSource;
 
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
+import com.ning.killbill.zuora.dao.entities.PaymentEntity;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 
 public class JPAZuoraPluginDao implements ZuoraPluginDao {
@@ -123,6 +124,28 @@ public class JPAZuoraPluginDao implements ZuoraPluginDao {
                     entityManager.persist(cur);
                 }
                 return null;
+            }
+        });
+    }
+
+    @Override
+    public void insertPayment(final PaymentEntity p) {
+        new WithEntityManager(true).<Void>doOperation(new EntityManagerCallback<Void>() {
+            @Override
+            public Void doRealOperation(final EntityManager entityManager) {
+                entityManager.persist(p);
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public PaymentEntity getPayment(final String kbPaymentId) {
+        return new WithEntityManager(false).<PaymentEntity>doOperation(new EntityManagerCallback<PaymentEntity>() {
+            @Override
+            public PaymentEntity doRealOperation(final EntityManager entityManager) {
+                final PaymentEntity p = entityManager.find(PaymentEntity.class, kbPaymentId);
+                return p;
             }
         });
     }

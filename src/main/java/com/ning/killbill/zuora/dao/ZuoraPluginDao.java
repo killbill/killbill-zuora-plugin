@@ -2,6 +2,7 @@ package com.ning.killbill.zuora.dao;
 
 import java.util.List;
 
+import com.ning.killbill.zuora.dao.entities.PaymentEntity;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 
 public interface ZuoraPluginDao {
@@ -17,5 +18,9 @@ public interface ZuoraPluginDao {
     public void updatePaymentMethod(final PaymentMethodEntity newPm);
 
     public void resetPaymentMethods(final List<PaymentMethodEntity> newPms);
+
+    public void insertPayment(PaymentEntity p);
+
+    public PaymentEntity getPayment(final String kbPaymentId);
 
 }

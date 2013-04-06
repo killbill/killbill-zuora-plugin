@@ -1,5 +1,6 @@
 package com.ning.killbill.zuora.dao;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
+import org.joda.time.DateTime;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -16,6 +18,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.ning.killbill.zuora.dao.dbi.JDBIZuoraPluginDao;
+import com.ning.killbill.zuora.dao.entities.PaymentEntity;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 import com.ning.killbill.zuora.dao.jpa.JPAZuoraPluginDao;
 
@@ -70,8 +73,27 @@ public class TestZuoraPluginDao {
     }
 
 
+
+
     @Test(groups = "slow", enabled = true)
-    public void testBasic() throws Exception {
+    public void testPaymentBasic() throws Exception {
+
+        final String accountId = UUID.randomUUID().toString();
+
+        final String pId1 = UUID.randomUUID().toString();
+        final String zId1 = "zid1";
+        final PaymentEntity p1 = new PaymentEntity(pId1, accountId, zId1, new DateTime().toDate(),  new DateTime().toDate(), new BigDecimal("12.56"), "processed", "ok", "1", "foo", "bar");
+
+        defaultZuoraPluginDao.insertPayment(p1);
+
+        final PaymentEntity res = defaultZuoraPluginDao.getPayment(pId1);
+        Assert.assertEquals(res, p1);
+    }
+
+
+
+        @Test(groups = "slow", enabled = true)
+    public void testPaymentMethodBasic() throws Exception {
 
         final String accountId = UUID.randomUUID().toString();
 
@@ -129,7 +151,7 @@ public class TestZuoraPluginDao {
     }
 
     @Test(groups = "slow", enabled = true)
-    public void testUpdateFromDetachedEntity() throws Exception {
+    public void testPaymentMethodUpdateFromDetachedEntity() throws Exception {
 
         final String id = "the-id";
         final String accountId = "account-id";
@@ -148,7 +170,7 @@ public class TestZuoraPluginDao {
 
 
     @Test(groups = "slow", enabled = true)
-    public void testDeleteFromDetachedEntity() throws Exception {
+    public void testPaymentMethodDeleteFromDetachedEntity() throws Exception {
 
         final String id = "the-id";
         final String accountId = "account-id";
@@ -173,7 +195,7 @@ public class TestZuoraPluginDao {
 
 
     @Test(groups = "slow", enabled = true)
-    public void testResetPaymentMethods() throws Exception {
+    public void testPaymentMethodReset() throws Exception {
 
         final String accountId = UUID.randomUUID().toString();
 
@@ -245,6 +267,9 @@ public class TestZuoraPluginDao {
         if (dataSource != null) {
             Connection conn = dataSource.getConnection();
             PreparedStatement st = conn.prepareStatement("delete from _zuora_payment_methods");
+            st.execute();
+            st.close();
+            st = conn.prepareStatement("delete from _zuora_payments");
             st.execute();
             st.close();
             conn.close();

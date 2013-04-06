@@ -1,0 +1,54 @@
+group PaymentEntitySqlDao;
+
+
+
+getById() ::= <<
+  select
+    kb_p_id
+    , kb_account_id
+    , z_p_id
+    , z_created_date
+    , z_effective_date
+    , z_amount
+    , z_status
+    , z_gateway_error
+    , z_gateway_error_code
+    , z_reference_id
+    , z_snd_reference_id
+  from _zuora_payments
+  where
+  kb_p_id = :kbPId
+  ;
+>>
+
+insert() ::= <<
+  insert into _zuora_payments (
+     kb_p_id
+     , kb_account_id
+     , z_p_id
+     , z_created_date
+     , z_effective_date
+     , z_amount
+     , z_status
+     , z_gateway_error
+     , z_gateway_error_code
+     , z_reference_id
+     , z_snd_reference_id
+     , last_updated
+  ) values (
+      :kbPId
+      , :kbAccountId
+      , :zPId
+       , :zCreatedDate
+       , :zEffectiveDate
+       , :zAmount
+       , :zStatus
+       , :zGatewayError
+       , :zGatewayErrorCode
+      , :zRefId
+      , :zSecondRefId
+      , NOW()
+  );
+>>
+
+

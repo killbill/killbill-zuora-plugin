@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.ning.killbill.zuora.dao.entities.PaymentEntity;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 
 import com.google.common.base.Predicate;
@@ -13,6 +14,7 @@ import com.google.common.collect.ImmutableList;
 public class MockZuoraPluginDao implements ZuoraPluginDao {
 
     final List<PaymentMethodEntity> paymentMethodEntities = new ArrayList<PaymentMethodEntity>();
+    final List<PaymentEntity> paymentEntities = new ArrayList<PaymentEntity>();
 
     @Override
     public void insertPaymentMethod(final PaymentMethodEntity pm) {
@@ -84,5 +86,22 @@ public class MockZuoraPluginDao implements ZuoraPluginDao {
                 paymentMethodEntities.add(paymentMethodEntity);
             }
         }
+    }
+
+    @Override
+    public void insertPayment(final PaymentEntity p) {
+        synchronized (paymentEntities) {
+            paymentEntities.add(p);
+        }
+    }
+
+    @Override
+    public PaymentEntity getPayment(final String kbPaymentId) {
+        for (PaymentEntity cur : paymentEntities) {
+            if (cur.getKbPaymentId().equals(kbPaymentId)) {
+                return cur;
+            }
+        }
+        return null;
     }
 }

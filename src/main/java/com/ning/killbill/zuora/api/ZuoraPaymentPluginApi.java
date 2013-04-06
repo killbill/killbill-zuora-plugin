@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import org.joda.time.DateTime;
 import org.osgi.service.log.LogService;
 
 import com.ning.billing.catalog.api.Currency;
@@ -34,10 +35,12 @@ import com.ning.billing.payment.plugin.api.RefundInfoPlugin;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.TenantContext;
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
+import com.ning.killbill.zuora.dao.entities.PaymentEntity;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 import com.ning.killbill.zuora.killbill.DefaultKillbillApi;
 import com.ning.killbill.zuora.util.Either;
 import com.ning.killbill.zuora.zuora.ConnectionPool;
+import com.ning.killbill.zuora.zuora.PaymentConverter;
 import com.ning.killbill.zuora.zuora.PaymentMethodConverter;
 import com.ning.killbill.zuora.zuora.PaymentMethodInfoConverter;
 import com.ning.killbill.zuora.zuora.ZuoraApi;
@@ -47,6 +50,7 @@ import com.ning.killbill.zuora.zuora.ZuoraError;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
+import com.zuora.api.object.Payment;
 import com.zuora.api.object.PaymentMethod;
 
 public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPluginApi {
@@ -65,7 +69,23 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
         final Either<ZuoraError, PaymentInfoPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentInfoPlugin>>() {
             @Override
             public Either<ZuoraError, PaymentInfoPlugin> withConnection(final ZuoraConnection connection) {
-                return convert(zuoraApi.processPayment(connection, accountExternalKey, amount, kbPaymentId.toString()), errorConverter, paymentConverter);
+
+                Either<ZuoraError, Payment> rowPaymentOrError = zuoraApi.processPayment(connection, accountExternalKey, amount, kbPaymentId.toString());
+                if (rowPaymentOrError.isRight()) {
+                    final Payment rowPayment = rowPaymentOrError.getRight();
+                    zuoraPluginDao.insertPayment(new PaymentEntity(kbPaymentId.toString(),
+                                                                   kbAccountId.toString(),
+                                                                   rowPayment.getId(),
+                                                                   rowPayment.getCreatedDate().toDate(),
+                                                                   rowPayment.getEffectiveDate().toDate(),
+                                                                   rowPayment.getAmount(),
+                                                                   rowPayment.getStatus(),
+                                                                   rowPayment.getGatewayResponse(),
+                                                                   rowPayment.getGatewayResponseCode(),
+                                                                   rowPayment.getReferenceId(),
+                                                                   rowPayment.getSecondPaymentReferenceId()));
+                }
+                return convert(rowPaymentOrError, errorConverter, paymentConverter);
             }
         });
         if (result.isLeft()) {
@@ -78,16 +98,73 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     @Override
     public PaymentInfoPlugin getPaymentInfo(final UUID kbAccountId, final UUID kbPaymentId, final TenantContext context) throws PaymentPluginApiException {
 
-        final Either<ZuoraError, PaymentInfoPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentInfoPlugin>>() {
+        final PaymentEntity res = zuoraPluginDao.getPayment(kbPaymentId.toString());
+        if (res != null) {
+            return new PaymentInfoPlugin() {
+                @Override
+                public BigDecimal getAmount() {
+                    return res.getAmount();
+                }
+                @Override
+                public DateTime getCreatedDate() {
+                    return new DateTime(res.getCreatedDate());
+                }
+                @Override
+                public DateTime getEffectiveDate() {
+                    return new DateTime(res.getEffectiveDate());
+                }
+                @Override
+                public PaymentPluginStatus getStatus() {
+                    return PaymentConverter.toPluginStatus(res.getStatus());
+                }
+                @Override
+                public String getGatewayError() {
+                    return res.getGatewayError();
+                }
+                @Override
+                public String getGatewayErrorCode() {
+                    return res.getGatewayErrorCode();
+                }
+                @Override
+                public String getFirstPaymentReferenceId() {
+                    return res.getReferenceId();
+                }
+                @Override
+                public String getSecondPaymentReferenceId() {
+                    return res.getSecondReferenceId();
+                }
+            };
+        }
+
+        final String accountExternalKey = defaultKillbillApi.getAccountExternalKeyFromAccountId(kbAccountId, context);
+        final Either<ZuoraError, Payment> result = withConnection(new ConnectionCallback<Either<ZuoraError, Payment>>() {
+
             @Override
-            public Either<ZuoraError, PaymentInfoPlugin> withConnection(final ZuoraConnection connection) {
-                return convert(zuoraApi.getPaymentById(connection, kbPaymentId.toString()), errorConverter, paymentConverter);
+            public Either<ZuoraError, Payment> withConnection(final ZuoraConnection connection) {
+                return zuoraApi.getPaymentForKillbillPayment(connection, accountExternalKey, kbPaymentId.toString());
             }
         });
-        if (result.isLeft()) {
+
+        if (result.isRight()) {
+            final Payment rowPayment = result.getRight();
+            zuoraPluginDao.insertPayment(new PaymentEntity(kbPaymentId.toString(),
+                                                           kbAccountId.toString(),
+                                                           rowPayment.getId(),
+                                                           rowPayment.getCreatedDate().toDate(),
+                                                           rowPayment.getEffectiveDate().toDate(),
+                                                           rowPayment.getAmount(),
+                                                           rowPayment.getStatus(),
+                                                           rowPayment.getGatewayResponse(),
+                                                           rowPayment.getGatewayResponseCode(),
+                                                           rowPayment.getReferenceId(),
+                                                           rowPayment.getSecondPaymentReferenceId()));
+        }
+
+        final Either<ZuoraError, PaymentInfoPlugin> finalResult =  convert(result, errorConverter, paymentConverter);
+        if (finalResult.isLeft()) {
             throw new PaymentPluginApiException(result.getLeft().getType(), result.getLeft().getMessage());
         } else {
-            return result.getRight();
+            return finalResult.getRight();
         }
     }
 
@@ -127,6 +204,11 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
         } else {
             return result.getRight();
         }
+    }
+
+    @Override
+    public List<RefundInfoPlugin> getRefundInfo(final UUID uuid, final UUID uuid2, final CallContext callContext) throws PaymentPluginApiException {
+        return null;
     }
 
     @Override

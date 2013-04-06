@@ -46,6 +46,11 @@ public class RefundConverter implements Converter<Refund, RefundInfoPlugin> {
             public String getGatewayErrorCode() {
                 return refund.getGatewayResponseCode();
             }
+
+            @Override
+            public String getReferenceId() {
+                return refund.getReferenceID();
+            }
         };
     }
 

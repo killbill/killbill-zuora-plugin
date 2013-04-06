@@ -20,6 +20,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.ning.billing.payment.api.PaymentMethodPlugin;
+import com.ning.killbill.zuora.method.CreditCardProperties;
+import com.ning.killbill.zuora.zuora.ZuoraApi;
 
 public class ZuoraPaymentMethodPlugin implements PaymentMethodPlugin {
 
@@ -71,5 +73,68 @@ public class ZuoraPaymentMethodPlugin implements PaymentMethodPlugin {
         }
         return null;
     }
-    
+
+
+    @Override
+    public String getType() {
+        return getValueString(CreditCardProperties.TYPE_VALUE);
+    }
+
+    @Override
+    public String getCCName() {
+        return getValueString(CreditCardProperties.CARD_HOLDER_NAME);
+    }
+
+    @Override
+    public String getCCType() {
+        return getValueString(CreditCardProperties.CARD_TYPE);
+    }
+
+    @Override
+    public String getCCExprirationMonth() {
+        final String [] parts = ZuoraApi.parseExpirationDate(getValueString(CreditCardProperties.EXPIRATION_DATE));
+        return parts != null && parts.length == 2 ? parts[1] : null;
+    }
+
+    @Override
+    public String getCCExprirationYear() {
+        final String [] parts = ZuoraApi.parseExpirationDate(getValueString(CreditCardProperties.EXPIRATION_DATE));
+        return parts != null && parts.length == 2 ? parts[0] : null;
+    }
+
+    @Override
+    public String getCCLast4() {
+        return getValueString(CreditCardProperties.MASK_NUMBER);
+    }
+
+    @Override
+    public String getAddress1() {
+        return getValueString(CreditCardProperties.ADDRESS1);
+    }
+
+    @Override
+    public String getAddress2() {
+        return getValueString(CreditCardProperties.ADDRESS2);
+    }
+
+    @Override
+    public String getCity() {
+        return getValueString(CreditCardProperties.CITY);
+    }
+
+    @Override
+    public String getState() {
+        return getValueString(CreditCardProperties.STATE);
+    }
+
+    @Override
+    public String getZip() {
+        return getValueString(CreditCardProperties.POSTAL_CODE);
+    }
+
+    @Override
+    public String getCountry() {
+        return getValueString(CreditCardProperties.COUNTRY);
+    }
+
 }

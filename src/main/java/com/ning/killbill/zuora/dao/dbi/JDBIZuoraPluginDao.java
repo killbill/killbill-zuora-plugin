@@ -10,16 +10,19 @@ import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
 
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
+import com.ning.killbill.zuora.dao.entities.PaymentEntity;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 
 public class JDBIZuoraPluginDao implements ZuoraPluginDao {
 
     private final IDBI dbi;
     private final PaymentMethodEntitySqlDao paymentMethodEntitySqlDao;
+    private final PaymentEntitySqlDao paymentEntitySqlDao;
 
     public JDBIZuoraPluginDao(final DataSource dataSource) {
         dbi = new DBI(dataSource);
-        paymentMethodEntitySqlDao = dbi.onDemand(PaymentMethodEntitySqlDao.class);
+        this.paymentMethodEntitySqlDao = dbi.onDemand(PaymentMethodEntitySqlDao.class);
+        this.paymentEntitySqlDao = dbi.onDemand(PaymentEntitySqlDao.class);
     }
 
     @Override
@@ -94,5 +97,16 @@ public class JDBIZuoraPluginDao implements ZuoraPluginDao {
                 return null;
             }
         });
+    }
+
+    @Override
+    public void insertPayment(final PaymentEntity p) {
+        paymentEntitySqlDao.insert(p);
+    }
+
+    @Override
+    public PaymentEntity getPayment(final String kbPaymentId) {
+        return paymentEntitySqlDao.getById(kbPaymentId);
+
     }
 }

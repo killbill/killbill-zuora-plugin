@@ -58,6 +58,16 @@ public class PaymentConverter implements Converter<Payment, PaymentInfoPlugin> {
             public String getGatewayErrorCode() {
                 return payment.getGatewayResponseCode();
             }
+
+            @Override
+            public String getFirstPaymentReferenceId() {
+                return payment.getReferenceId();
+            }
+
+            @Override
+            public String getSecondPaymentReferenceId() {
+                return payment.getSecondPaymentReferenceId();
+            }
         };
     }
 
@@ -65,7 +75,7 @@ public class PaymentConverter implements Converter<Payment, PaymentInfoPlugin> {
     // From zuora doc:
     // Draft, Processing, Processed, Error, Voided
     //
-    PaymentPluginStatus toPluginStatus(String status) {
+    public static PaymentPluginStatus toPluginStatus(String status) {
         if (status.equalsIgnoreCase("error")) {
             return PaymentPluginStatus.ERROR;
         } else if (status.equalsIgnoreCase("processed")) {
