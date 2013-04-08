@@ -36,9 +36,9 @@ public class TestZuoraPluginDao {
 
     // http://comments.gmane.org/gmane.comp.apache.openjpa.user/8354
 
-    private final String JDBC_URL = "jdbc:mysql://127.0.0.1:3306/zuora";
-    private final String JDBC_USER = "root";
-    private final String JDBC_PWD = "root";
+    public final static String JDBC_URL = "jdbc:mysql://127.0.0.1:3306/zuora";
+    public final static String JDBC_USER = "root";
+    public final static String JDBC_PWD = "root";
 
     private ZuoraPluginDao defaultZuoraPluginDao;
     private DataSource dataSource;
@@ -49,12 +49,12 @@ public class TestZuoraPluginDao {
         dataSource = getC3P0DataSource();
         //defaultZuoraPluginDao = new JPAZuoraPluginDao(dataSource);
         defaultZuoraPluginDao = new JDBIZuoraPluginDao(dataSource);
-        cleanupTables();
+        cleanupTables(dataSource);
     }
 
     @BeforeMethod(groups = "slow")
     public void beforeMethod() throws Exception {
-        cleanupTables();
+        cleanupTables(dataSource);
         /*
         if (defaultZuoraPluginDao == null) {
             defaultZuoraPluginDao = new JPAZuoraPluginDao(dataSource);
@@ -82,7 +82,9 @@ public class TestZuoraPluginDao {
 
         final String pId1 = UUID.randomUUID().toString();
         final String zId1 = "zid1";
-        final PaymentEntity p1 = new PaymentEntity(pId1, accountId, zId1, new DateTime().toDate(),  new DateTime().toDate(), new BigDecimal("12.56"), "processed", "ok", "1", "foo", "bar");
+        DateTime now = new DateTime();
+        now = now.minus(now.getMillisOfSecond());
+        final PaymentEntity p1 = new PaymentEntity(pId1, accountId, zId1, now.toDate(),  now.toDate(), new BigDecimal("12.56"), "processed", "ok", "1", "foo", "bar");
 
         defaultZuoraPluginDao.insertPayment(p1);
 
@@ -263,7 +265,7 @@ public class TestZuoraPluginDao {
         return resPms;
     }
 
-    private void cleanupTables() throws Exception {
+    public static void cleanupTables(DataSource dataSource) throws Exception {
         if (dataSource != null) {
             Connection conn = dataSource.getConnection();
             PreparedStatement st = conn.prepareStatement("delete from _zuora_payment_methods");
@@ -305,7 +307,7 @@ public class TestZuoraPluginDao {
         return new BoneCPDataSource(config);
     }
 
-    private DataSource getC3P0DataSource() {
+    public static DataSource getC3P0DataSource() {
         ComboPooledDataSource cpds = new ComboPooledDataSource();
         cpds.setJdbcUrl(JDBC_URL);
         cpds.setUser(JDBC_USER);

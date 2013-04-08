@@ -132,13 +132,13 @@ public class PaymentEntity implements Serializable {
 
         final PaymentEntity that = (PaymentEntity) o;
 
-        if (amount != null ? (amount.compareTo(that.amount)  == 0) : that.amount != null) {
+        if (amount != null ? (amount.compareTo(that.amount)  != 0) : (that.amount != null)) {
             return false;
         }
-        if (createdDate != null ? (createdDate.compareTo(that.createdDate) == 0) : that.createdDate != null) {
+        if (createdDate != null ? (createdDate.compareTo(that.createdDate) != 0) : that.createdDate != null) {
             return false;
         }
-        if (effectiveDate != null ? (effectiveDate.compareTo(that.effectiveDate) == 0) : that.effectiveDate != null) {
+        if (effectiveDate != null ? (effectiveDate.compareTo(that.effectiveDate) != 0) : that.effectiveDate != null) {
             return false;
         }
         if (gatewayError != null ? !gatewayError.equals(that.gatewayError) : that.gatewayError != null) {

@@ -3,8 +3,11 @@ package com.ning.killbill.zuora.dao.dbi;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Date;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -56,15 +59,23 @@ public interface PaymentEntitySqlDao extends Transactional<PaymentMethodEntitySq
             final String kbPamentId = r.getString("kb_p_id");
             final String kbAccountId = r.getString("kb_account_id");
             final String zuoraPamentId = r.getString("z_p_id");
-            final Date createdDate = r.getDate("z_created_date");
-            final Date effectiveDate = r.getDate("z_effective_date");
+            final DateTime createdDate = getDateTime(r, "z_created_date");
+            final DateTime effectiveDate = getDateTime(r, "z_effective_date");
             final BigDecimal amount = r.getBigDecimal("z_amount");
             final String status = r.getString("z_status");
             final String gatewayError = r.getString("z_gateway_error");
             final String gatewayErrorCode = r.getString("z_gateway_error_code");
             final String firstRefId = r.getString("z_reference_id");
             final String secondRefId = r.getString("z_snd_reference_id");
-            return new PaymentEntity(kbPamentId, kbAccountId, zuoraPamentId, createdDate, effectiveDate, amount, status, gatewayError, gatewayErrorCode, firstRefId, secondRefId);
+            return new PaymentEntity(kbPamentId, kbAccountId, zuoraPamentId, createdDate.toDate(), effectiveDate.toDate(), amount, status, gatewayError, gatewayErrorCode, firstRefId, secondRefId);
         }
+
+
+        protected DateTime getDateTime(final ResultSet rs, final String fieldName) throws SQLException {
+            final Timestamp resultStamp = rs.getTimestamp(fieldName);
+            return rs.wasNull() ? null : new DateTime(resultStamp).toDateTime(DateTimeZone.UTC);
+        }
+
+
     }
 }

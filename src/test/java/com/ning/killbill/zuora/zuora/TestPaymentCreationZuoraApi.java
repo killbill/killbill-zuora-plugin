@@ -37,7 +37,7 @@ import static org.testng.Assert.assertTrue;
 public class TestPaymentCreationZuoraApi extends TestZuoraApiBase {
 
 
-    @Test(groups = { "zuora"}, enabled=true)
+    @Test(groups = { "zuora"}, enabled=false)
     public void testFailedCreatePaypalPayment() {
 
         withConnection(new ConnectionCallback<Void>() {

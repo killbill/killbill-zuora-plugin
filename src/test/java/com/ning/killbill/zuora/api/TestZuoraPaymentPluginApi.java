@@ -1,119 +1,130 @@
 package com.ning.killbill.zuora.api;
 
-import java.util.List;
+import java.math.BigDecimal;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
+import javax.sql.DataSource;
 
 import org.mockito.Mockito;
-import org.osgi.service.log.LogService;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.ning.billing.account.api.Account;
+import com.ning.billing.account.api.AccountApiException;
+import com.ning.billing.account.api.AccountUserApi;
+import com.ning.billing.catalog.api.Currency;
+import com.ning.billing.osgi.api.OSGIKillbill;
+import com.ning.billing.payment.api.PaymentApi;
+import com.ning.billing.payment.api.PaymentApiException;
+import com.ning.billing.payment.api.PaymentMethod;
 import com.ning.billing.payment.api.PaymentMethodPlugin;
-import com.ning.billing.payment.plugin.api.PaymentMethodInfoPlugin;
-import com.ning.billing.payment.plugin.api.PaymentPluginApiException;
-import com.ning.billing.util.callcontext.CallContext;
-import com.ning.killbill.zuora.dao.MockZuoraPluginDao;
+import com.ning.billing.payment.plugin.api.PaymentInfoPlugin;
+import com.ning.billing.util.callcontext.TenantContext;
+import com.ning.killbill.zuora.dao.TestZuoraPluginDao;
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
-import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
-import com.ning.killbill.zuora.killbill.MockDefaultKillbillApi;
-import com.ning.killbill.zuora.zuora.ConnectionPool;
-import com.ning.killbill.zuora.zuora.MockZuoraApi;
-import com.ning.killbill.zuora.zuora.ZuoraApi;
+import com.ning.killbill.zuora.dao.dbi.JDBIZuoraPluginDao;
+import com.ning.killbill.zuora.killbill.DefaultKillbillApi;
+import com.ning.killbill.zuora.osgi.ZuoraActivator;
+import com.ning.killbill.zuora.zuora.TestZuoraApiBase;
 
-public class TestZuoraPaymentPluginApi {
+public class TestZuoraPaymentPluginApi extends TestZuoraApiBase {
 
-    private final CallContext callContext = Mockito.mock(CallContext.class);
 
-    private ZuoraPluginDao zuoraPluginDao;
+    private final static UUID PAYMENT_METHOD_ID = UUID.fromString("7a01e4ea-dd5b-424c-ae65-f977735144a6");
+    private final static UUID PAYMENT_ID = UUID.fromString("ed3357f9-dc9e-4d12-b46a-dc2395f6e9db");
+
     private ZuoraPaymentPluginApi zuoraPaymentPluginApi;
-    private UUID kbAccountId;
-    private String kbExternalKey;
-    private UUID kbPaymentMethodId;
+    private DataSource dataSource;
+    private ZuoraPluginDao zuoraPluginDao;
 
-    @BeforeMethod(groups = "fast")
-    public void setup() throws Exception {
-        final ZuoraApi zuoraApi = new MockZuoraApi();
-        zuoraPluginDao = new MockZuoraPluginDao();
-        final MockDefaultKillbillApi defaultKillbillApi = new MockDefaultKillbillApi();
-        zuoraPaymentPluginApi = new ZuoraPaymentPluginApi(Mockito.mock(ConnectionPool.class),
-                                                          zuoraApi,
-                                                          Mockito.mock(LogService.class),
-                                                          defaultKillbillApi,
-                                                          zuoraPluginDao,
-                                                          "testing");
 
-        // Create the account in Killbill...
-        kbAccountId = UUID.randomUUID();
-        kbExternalKey = UUID.randomUUID().toString();
-        defaultKillbillApi.createKbAccount(kbAccountId, kbExternalKey);
-        // ...and in Zuora
+    @BeforeClass(groups = {"zuora"}, enabled = true)
+    public void setup() {
+        try {
+            super.setup();
+            dataSource = TestZuoraPluginDao.getC3P0DataSource();
+            zuoraPluginDao = new JDBIZuoraPluginDao(dataSource);
+            zuoraPaymentPluginApi = new ZuoraPaymentPluginApi(pool, zuoraApi, logService, getKillbillApi(), zuoraPluginDao, ZuoraActivator.PLUGIN_NAME);
+
+        } catch (Exception e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+
+    @BeforeMethod(groups = {"zuora"}, enabled = true)
+    public void setupMethod() throws Exception {
+        TestZuoraPluginDao.cleanupTables(dataSource);
+        super.setupMethod();
+        PaymentMethodPlugin detail = createPaypalPaymentMethod(null, true);
+        zuoraPaymentPluginApi.addPaymentMethod(ACCOUNT_ID, PAYMENT_METHOD_ID, detail, true, null);
+
+    }
+
+    @Test(groups = {"zuora"}, enabled = true)
+    public void testPaymentApi() throws Exception {
+
+        final PaymentInfoPlugin paymentInfo = zuoraPaymentPluginApi.processPayment(ACCOUNT_ID, PAYMENT_ID, PAYMENT_METHOD_ID, new BigDecimal("12.76"), Currency.GBP, null);
+        Assert.assertEquals(paymentInfo.getAmount().compareTo(new BigDecimal("12.76")), 0);
+        Assert.assertEquals(paymentInfo.getGatewayError(), "Approved");
+        Assert.assertEquals(paymentInfo.getGatewayErrorCode(), "0");
+
+
+        // Now retrieve should come from the database
+        Assert.assertNotNull(zuoraPluginDao.getPayment(PAYMENT_ID.toString()));
+
+        final PaymentInfoPlugin paymentInfo2 = zuoraPaymentPluginApi.getPaymentInfo(ACCOUNT_ID, PAYMENT_ID, null);
+        Assert.assertEquals(paymentInfo2.getAmount().compareTo(paymentInfo.getAmount()), 0);
+        Assert.assertEquals(paymentInfo2.getGatewayError(), paymentInfo.getGatewayError());
+        Assert.assertEquals(paymentInfo2.getGatewayErrorCode(), paymentInfo.getGatewayErrorCode());
+        Assert.assertEquals(paymentInfo2.getFirstPaymentReferenceId(), paymentInfo.getFirstPaymentReferenceId());
+        Assert.assertEquals(paymentInfo2.getSecondPaymentReferenceId(), paymentInfo.getSecondPaymentReferenceId());
+        //Assert.assertEquals(paymentInfo2.getCreatedDate().compareTo(paymentInfo.getCreatedDate()), 0);
+        //Assert.assertEquals(paymentInfo2.getEffectiveDate().compareTo(paymentInfo.getEffectiveDate()), 0);
+
+        //
+        // Now delete entry from DB and fetch payment again-- should retrieve it from zuora
+        //
+        TestZuoraPluginDao.cleanupTables(dataSource);
+
+        Assert.assertNull(zuoraPluginDao.getPayment(PAYMENT_ID.toString()));
+
+        final PaymentInfoPlugin paymentInfo3 = zuoraPaymentPluginApi.getPaymentInfo(ACCOUNT_ID, PAYMENT_ID, null);
+        Assert.assertEquals(paymentInfo3.getAmount().compareTo(paymentInfo.getAmount()), 0);
+        Assert.assertEquals(paymentInfo3.getGatewayError(), paymentInfo.getGatewayError());
+        Assert.assertEquals(paymentInfo3.getGatewayErrorCode(), paymentInfo.getGatewayErrorCode());
+        Assert.assertEquals(paymentInfo3.getFirstPaymentReferenceId(), paymentInfo.getFirstPaymentReferenceId());
+        Assert.assertEquals(paymentInfo3.getSecondPaymentReferenceId(), paymentInfo.getSecondPaymentReferenceId());
+        //Assert.assertEquals(paymentInfo3.getCreatedDate().compareTo(paymentInfo.getCreatedDate()), 0);
+        //Assert.assertEquals(paymentInfo3.getEffectiveDate().compareTo(paymentInfo.getEffectiveDate()), 0);
+
+        Assert.assertNotNull(zuoraPluginDao.getPayment(PAYMENT_ID.toString()));
+
+    }
+
+
+    private DefaultKillbillApi getKillbillApi() throws AccountApiException, PaymentApiException {
+
         final Account account = Mockito.mock(Account.class);
-        Mockito.when(account.getId()).thenReturn(kbAccountId);
-        Mockito.when(account.getExternalKey()).thenReturn(kbExternalKey);
-        zuoraApi.createPaymentProviderAccount(null, account);
+        Mockito.when(account.getExternalKey()).thenReturn(EXTERNAL_NAME);
 
-        // Create the payment method in Killbill
-        kbPaymentMethodId = UUID.randomUUID();
-        defaultKillbillApi.createKbPaymentMethodId(kbPaymentMethodId, kbExternalKey);
+        final PaymentMethod paymentMethod = Mockito.mock(PaymentMethod.class);
+        Mockito.when(paymentMethod.getAccountId()).thenReturn(ACCOUNT_ID);
+
+        final AccountUserApi accountUserApi = Mockito.mock(AccountUserApi.class);
+        Mockito.when(accountUserApi.getAccountById(Mockito.eq(ACCOUNT_ID), Mockito.<TenantContext>any())).thenReturn(account);
+
+        final PaymentApi paymentApi = Mockito.mock(PaymentApi.class);
+        Mockito.when(paymentApi.getPaymentMethodById(Mockito.eq(PAYMENT_METHOD_ID), Mockito.eq(false), Mockito.<TenantContext>any())).thenReturn(paymentMethod);
+
+
+        final OSGIKillbill osgiKillbill = Mockito.mock(OSGIKillbill.class);
+        Mockito.when(osgiKillbill.getPaymentApi()).thenReturn(paymentApi);
+        Mockito.when(osgiKillbill.getAccountUserApi()).thenReturn(accountUserApi);
+
+        return new DefaultKillbillApi(osgiKillbill, logService);
     }
 
-    @Test(groups = "fast")
-    public void testPaymentMethods() throws Exception {
-        verifyPaymentMethods(0);
-
-        // Not really used (only for kv properties in the real system)
-        final PaymentMethodPlugin paymentMethodPlugin = new ZuoraPaymentMethodPlugin(null, false);
-
-        // Create the payment method
-        zuoraPaymentPluginApi.addPaymentMethod(kbAccountId, kbPaymentMethodId, paymentMethodPlugin, false, callContext);
-
-        // Retrieve it
-        final PaymentMethodPlugin retrievedPaymentMethodPlugin = zuoraPaymentPluginApi.getPaymentMethodDetail(kbAccountId, kbPaymentMethodId, callContext);
-        Assert.assertNotNull(retrievedPaymentMethodPlugin);
-        final String zuoraPaymentMethodId = retrievedPaymentMethodPlugin.getExternalPaymentMethodId();
-
-        // Retrieve by account
-        verifyPaymentMethods(kbPaymentMethodId, zuoraPaymentMethodId, false, 1);
-
-        zuoraPaymentPluginApi.setDefaultPaymentMethod(kbAccountId, kbPaymentMethodId, callContext);
-        verifyPaymentMethods(kbPaymentMethodId, zuoraPaymentMethodId, true, 1);
-
-        zuoraPaymentPluginApi.deletePaymentMethod(kbAccountId, kbPaymentMethodId, callContext);
-        verifyPaymentMethods(0);
-    }
-
-    private void verifyPaymentMethods(final int howMany) throws PaymentPluginApiException {
-        verifyPaymentMethods(null, null, false, howMany);
-    }
-
-    private void verifyPaymentMethods(@Nullable final UUID kbPaymentMethodId, @Nullable final String zuoraPaymentMethodId,
-                                      final boolean isDefault, final int howMany) throws PaymentPluginApiException {
-        // Verify the Zuora state
-        final List<PaymentMethodInfoPlugin> paymentMethodInfoPlugins = zuoraPaymentPluginApi.getPaymentMethods(kbAccountId, false, callContext);
-        Assert.assertEquals(paymentMethodInfoPlugins.size(), howMany);
-
-        if (howMany == 1) {
-            final PaymentMethodInfoPlugin zePm = paymentMethodInfoPlugins.get(0);
-            Assert.assertEquals(zePm.getAccountId(), kbAccountId);
-            Assert.assertEquals(zePm.getPaymentMethodId(), kbPaymentMethodId);
-            Assert.assertEquals(zePm.getExternalPaymentMethodId(), zuoraPaymentMethodId);
-            Assert.assertEquals(zePm.isDefault(), isDefault);
-        }
-
-        // Verify the Killbill state
-        final List<PaymentMethodEntity> paymentMethodEntities = zuoraPluginDao.getPaymentMethods(kbAccountId.toString());
-        Assert.assertEquals(paymentMethodEntities.size(), howMany);
-
-        if (howMany == 1) {
-            final PaymentMethodEntity zePm = paymentMethodEntities.get(0);
-            Assert.assertEquals(zePm.getKbAccountId(), kbAccountId.toString());
-            Assert.assertEquals(zePm.getKbPaymentMethodId(), kbPaymentMethodId.toString());
-            Assert.assertEquals(zePm.getZuoraPaymentMethodId(), zuoraPaymentMethodId);
-            Assert.assertEquals(zePm.isDefault(), isDefault);
-        }
-    }
 }

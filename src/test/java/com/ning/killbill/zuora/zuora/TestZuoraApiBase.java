@@ -28,10 +28,16 @@ import java.net.URL;
 import java.util.Properties;
 import java.util.UUID;
 
+import com.ning.billing.account.api.AccountApiException;
+import com.ning.billing.payment.api.PaymentApiException;
+import com.ning.killbill.zuora.api.ZuoraPaymentPluginApi;
+import com.ning.killbill.zuora.dao.ZuoraPluginDao;
+import com.ning.killbill.zuora.killbill.DefaultKillbillApi;
 import com.ning.killbill.zuora.method.CreditCardProperties;
 import com.ning.killbill.zuora.method.PaymentMethodProperties;
 import com.ning.killbill.zuora.method.PaypalProperties;
 import com.ning.killbill.zuora.api.ZuoraPaymentMethodPlugin;
+import com.ning.killbill.zuora.osgi.ZuoraActivator;
 import com.ning.killbill.zuora.zuora.setup.ZuoraConfig;
 import com.ning.killbill.zuora.util.Either;
 
@@ -62,7 +68,7 @@ public class TestZuoraApiBase {
 
 
     protected final static String EXTERNAL_NAME = "trsgafuwg";
-    protected final static UUID ACCOUNT_ID = UUID.randomUUID();
+    protected final static UUID ACCOUNT_ID = UUID.fromString("cd09288f-4d8a-4fa2-afb2-9cea194eba82");
 
     protected ZuoraConfig zuoraConfig;
     protected ZuoraApi zuoraApi;
@@ -87,22 +93,25 @@ public class TestZuoraApiBase {
         }
     }
 
-    @BeforeClass
+
+
+    @BeforeClass(groups = {"zuora"}, enabled = true)
     public void setup() {
         final Properties props = System.getProperties();
         final ConfigurationObjectFactory factory = new ConfigurationObjectFactory(props);
         logService = new LogServiceTest(log);
 
         zuoraConfig = factory.buildWithReplacements(ZuoraConfig.class,
-                ImmutableMap.of("pluginInstanceName", instanceName));
+                                                    ImmutableMap.of("pluginInstanceName", instanceName));
         zuoraApi = new ZuoraApi(zuoraConfig, logService);
         connectionFactory = new ConnectionFactory(zuoraConfig, zuoraApi, logService);
         pool = new ConnectionPool(connectionFactory, zuoraConfig);
     }
 
 
-    @BeforeMethod
-    public void setupMethod() {
+
+    @BeforeMethod(groups = {"zuora"}, enabled = true)
+    public void setupMethod() throws Exception {
         final com.ning.billing.account.api.Account accountTmp = createAccount(ACCOUNT_ID, EXTERNAL_NAME);
         this.account = withConnection(new ConnectionCallback<Account>() {
             @Override
@@ -128,7 +137,7 @@ public class TestZuoraApiBase {
         log.info("Created zuora account {}", account.getId());
     }
 
-    @AfterMethod
+    @AfterMethod(groups = {"zuora"}, enabled = true)
     public void afterMethod() {
         withConnection(new ConnectionCallback<Void>() {
             @Override

@@ -412,7 +412,7 @@ public class ZuoraApi {
         }
 
         for (Payment cur : paymentAccounts.getRight()) {
-            if (cur.getComment() != null && cur.getComment().equals(kbPaymentId) && cur.getStatus().equals("processed")) {
+            if (cur.getComment() != null && cur.getComment().equals(kbPaymentId)) {
                 return Either.right(cur);
             }
         }
