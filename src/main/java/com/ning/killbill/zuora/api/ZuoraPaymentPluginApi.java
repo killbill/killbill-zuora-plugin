@@ -207,7 +207,7 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
     }
 
     @Override
-    public List<RefundInfoPlugin> getRefundInfo(final UUID uuid, final UUID uuid2, final CallContext callContext) throws PaymentPluginApiException {
+    public List<RefundInfoPlugin> getRefundInfo(final UUID uuid, final UUID uuid2, final TenantContext callContext) throws PaymentPluginApiException {
         return null;
     }
 
