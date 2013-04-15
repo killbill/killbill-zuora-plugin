@@ -10,7 +10,7 @@ CREATE TABLE `_zuora_payments` (
   `z_gateway_error_code` varchar(32) DEFAULT NULL,
   `kb_account_id` varchar(36) NOT NULL,
   `z_reference_id` varchar(36) NOT NULL,
-  `z_snd_reference_id` varchar(36) NOT NULL,
+  `z_snd_reference_id` varchar(36) DEFAULT NULL,
   `z_status` varchar(64) NOT NULL,
   `z_p_id` varchar(64) NOT NULL,
   `last_updated` datetime DEFAULT NULL,
