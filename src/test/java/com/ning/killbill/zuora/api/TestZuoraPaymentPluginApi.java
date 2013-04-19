@@ -117,7 +117,7 @@ public class TestZuoraPaymentPluginApi extends TestZuoraApiBase {
         Mockito.when(accountUserApi.getAccountById(Mockito.eq(ACCOUNT_ID), Mockito.<TenantContext>any())).thenReturn(account);
 
         final PaymentApi paymentApi = Mockito.mock(PaymentApi.class);
-        Mockito.when(paymentApi.getPaymentMethodById(Mockito.eq(PAYMENT_METHOD_ID), Mockito.eq(false), Mockito.<TenantContext>any())).thenReturn(paymentMethod);
+        Mockito.when(paymentApi.getPaymentMethodById(Mockito.eq(PAYMENT_METHOD_ID), Mockito.eq(false), Mockito.eq(false), Mockito.<TenantContext>any())).thenReturn(paymentMethod);
 
 
         final OSGIKillbill osgiKillbill = Mockito.mock(OSGIKillbill.class);
