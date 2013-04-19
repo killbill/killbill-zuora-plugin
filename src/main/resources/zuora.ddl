@@ -6,7 +6,7 @@ CREATE TABLE `_zuora_payments` (
   `z_amount` decimal(10,4) NOT NULL,
   `z_created_date` datetime NOT NULL,
   `z_effective_date` datetime NOT NULL,
-  `z_gateway_error` varchar(64) DEFAULT NULL,
+  `z_gateway_error` varchar(255) DEFAULT NULL,
   `z_gateway_error_code` varchar(32) DEFAULT NULL,
   `kb_account_id` varchar(36) NOT NULL,
   `z_reference_id` varchar(36) NOT NULL,

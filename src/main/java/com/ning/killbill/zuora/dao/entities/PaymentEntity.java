@@ -35,7 +35,7 @@ public class PaymentEntity implements Serializable {
     @Column(name = "z_status", length=64, nullable = false)
     private String status;
 
-    @Column(name = "z_gateway_error", length=64, nullable = true)
+    @Column(name = "z_gateway_error", length=255, nullable = true)
     private String gatewayError;
 
     @Column(name = "z_gateway_error_code", length=32, nullable = true)
