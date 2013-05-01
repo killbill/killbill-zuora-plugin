@@ -23,9 +23,9 @@ getByAccountId() ::= <<
   kb_account_id = :kbAccountId
   ;
 >>
-
+/*  We use ignore */
 insert() ::= <<
-  insert into _zuora_payment_methods (
+  insert ignore into _zuora_payment_methods (
      kb_pm_id
      , kb_account_id
      , z_pm_id

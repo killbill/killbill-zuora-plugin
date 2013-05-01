@@ -57,7 +57,7 @@ public class PaymentMethodConverter implements Converter<PaymentMethod, PaymentM
     public static PaymentMethodPlugin convertFromPaymentMethodDetailEntity(final PaymentMethodDetailEntity entity, boolean isDefault) {
 
         ZuoraPaymentMethodPlugin result = new ZuoraPaymentMethodPlugin(entity.getzPmId(), isDefault);
-        result.addProperty(CreditCardProperties.TYPE, CreditCardProperties.TYPE_VALUE, false);
+        result.addProperty(CreditCardProperties.TYPE, entity.getType(), false);
         result.addProperty(CreditCardProperties.CARD_HOLDER_NAME, entity.getCcName(), true);
         result.addProperty(CreditCardProperties.CARD_TYPE, entity.getCcType(), false);
         result.addProperty(CreditCardProperties.EXPIRATION_DATE,
