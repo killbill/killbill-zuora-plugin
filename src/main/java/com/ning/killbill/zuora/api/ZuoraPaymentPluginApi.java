@@ -36,6 +36,7 @@ import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.TenantContext;
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
 import com.ning.killbill.zuora.dao.entities.PaymentEntity;
+import com.ning.killbill.zuora.dao.entities.PaymentMethodDetailEntity;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 import com.ning.killbill.zuora.killbill.DefaultKillbillApi;
 import com.ning.killbill.zuora.util.Either;
@@ -262,6 +263,7 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
         if (result.isLeft()) {
             throw new PaymentPluginApiException(result.getLeft().getType(), result.getLeft().getMessage());
         } else {
+            zuoraPluginDao.deletePaymentMethodDetailById(entity.getZuoraPaymentMethodId());
             zuoraPluginDao.deletePaymentMethodById(kbPaymentMethodId.toString());
         }
     }
@@ -271,6 +273,11 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
         final PaymentMethodEntity paymentMethodEntity = zuoraPluginDao.getPaymentMethodById(kbPaymentMethodId.toString());
         if (paymentMethodEntity == null) {
             return null;
+        }
+
+        final PaymentMethodDetailEntity paymentMethodDetailEntity = zuoraPluginDao.getPaymentMethodDetailById(paymentMethodEntity.getZuoraPaymentMethodId());
+        if (paymentMethodDetailEntity != null) {
+            return PaymentMethodConverter.convertFromPaymentMethodDetailEntity(paymentMethodDetailEntity, paymentMethodEntity.isDefault());
         }
 
         final Either<ZuoraError, PaymentMethodPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentMethodPlugin>>() {
@@ -286,6 +293,7 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
                     if (accountOrError.isLeft()) {
                         return convert(accountOrError, errorConverter, null);
                     } else {
+                        zuoraPluginDao.insertPaymentMethodDetail(PaymentMethodConverter.convertFromZuoraPaymentMethod(paymentMethodOrError.getRight()));
                         final com.zuora.api.object.Account account = accountOrError.getRight();
                         final PaymentMethodConverter converter = new PaymentMethodConverter(account);
                         return convert(paymentMethodOrError, errorConverter, converter);

@@ -1,0 +1,64 @@
+group PaymentMethodDetailEntitySqlDao;
+
+
+getById() ::= <<
+  select
+    z_pm_id
+    , type
+    , cc_name
+    , cc_type
+    , cc_expriration_month
+    , cc_expriration_year
+    , cc_last4
+    , address1
+    , address2
+    , city
+    , state
+    , zip
+    , country
+  from _zuora_payment_methods_details
+  where
+  z_pm_id = :zPmId
+  ;
+>>
+
+insert() ::= <<
+  insert into _zuora_payment_methods_details (
+    z_pm_id
+    , type
+    , cc_name
+    , cc_type
+    , cc_expriration_month
+    , cc_expriration_year
+    , cc_last4
+    , address1
+    , address2
+    , city
+    , state
+    , zip
+    , country
+    , last_updated
+  ) values (
+    :zPmId
+    , :type
+    , :ccName
+    , :ccType
+    , :ccExprirationMonth
+    , :ccExprirationYear
+    , :ccLast4
+    , :address1
+    , :address2
+    , :city
+    , :state
+    , :zip
+    , :country
+    , NOW()
+  );
+>>
+
+deleteById() ::= <<
+  delete from _zuora_payment_methods_details
+  where
+    z_pm_id = :zPmId
+  ;
+>>

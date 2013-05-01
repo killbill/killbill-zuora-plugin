@@ -11,17 +11,20 @@ import org.skife.jdbi.v2.TransactionStatus;
 
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
 import com.ning.killbill.zuora.dao.entities.PaymentEntity;
+import com.ning.killbill.zuora.dao.entities.PaymentMethodDetailEntity;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 
 public class JDBIZuoraPluginDao implements ZuoraPluginDao {
 
     private final IDBI dbi;
     private final PaymentMethodEntitySqlDao paymentMethodEntitySqlDao;
+    private final PaymentMethodDetailEntitySqlDao paymentMethodDetailEntitySqlDao;
     private final PaymentEntitySqlDao paymentEntitySqlDao;
 
     public JDBIZuoraPluginDao(final DataSource dataSource) {
         dbi = new DBI(dataSource);
         this.paymentMethodEntitySqlDao = dbi.onDemand(PaymentMethodEntitySqlDao.class);
+        this.paymentMethodDetailEntitySqlDao = dbi.onDemand(PaymentMethodDetailEntitySqlDao.class);
         this.paymentEntitySqlDao = dbi.onDemand(PaymentEntitySqlDao.class);
     }
 
@@ -94,6 +97,39 @@ public class JDBIZuoraPluginDao implements ZuoraPluginDao {
                         transactional.insert(cur);
                     }
                 }
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public PaymentMethodDetailEntity getPaymentMethodDetailById(final String zPaymentMethodId) {
+        return paymentMethodDetailEntitySqlDao.inTransaction(new Transaction<PaymentMethodDetailEntity, PaymentMethodDetailEntitySqlDao>() {
+            @Override
+            public PaymentMethodDetailEntity inTransaction(final PaymentMethodDetailEntitySqlDao transactional, final TransactionStatus status) throws Exception {
+                return transactional.getById(zPaymentMethodId);
+            }
+        });
+    }
+
+
+    @Override
+    public void insertPaymentMethodDetail(final PaymentMethodDetailEntity pmd) {
+        paymentMethodDetailEntitySqlDao.inTransaction(new Transaction<Void, PaymentMethodDetailEntitySqlDao>() {
+            @Override
+            public Void inTransaction(final PaymentMethodDetailEntitySqlDao transactional, final TransactionStatus status) throws Exception {
+                transactional.insert(pmd);
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public void deletePaymentMethodDetailById(final String zPaymentMethodId) {
+        paymentMethodDetailEntitySqlDao.inTransaction(new Transaction<Void, PaymentMethodDetailEntitySqlDao>() {
+            @Override
+            public Void inTransaction(final PaymentMethodDetailEntitySqlDao transactional, final TransactionStatus status) throws Exception {
+                transactional.deleteById(zPaymentMethodId);
                 return null;
             }
         });

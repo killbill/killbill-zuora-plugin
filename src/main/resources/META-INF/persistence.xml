@@ -9,6 +9,7 @@
             org.apache.openjpa.persistence.PersistenceProviderImpl
         </provider>
         <class>com.ning.killbill.zuora.dao.entities.PaymentMethodEntity</class>
+        <class>com.ning.killbill.zuora.dao.entities.PaymentMethodDetailEntity</class>
         <class>com.ning.killbill.zuora.dao.entities.PaymentEntity</class>
         <properties>
             <property name="openjpa.DataCache" value="false"/>

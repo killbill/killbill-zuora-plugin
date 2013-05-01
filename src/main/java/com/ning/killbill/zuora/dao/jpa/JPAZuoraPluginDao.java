@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 
 import com.ning.killbill.zuora.dao.ZuoraPluginDao;
 import com.ning.killbill.zuora.dao.entities.PaymentEntity;
+import com.ning.killbill.zuora.dao.entities.PaymentMethodDetailEntity;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 
 public class JPAZuoraPluginDao implements ZuoraPluginDao {
@@ -122,6 +123,43 @@ public class JPAZuoraPluginDao implements ZuoraPluginDao {
 
                 for (PaymentMethodEntity cur : newPms) {
                     entityManager.persist(cur);
+                }
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public PaymentMethodDetailEntity getPaymentMethodDetailById(final String zPaymentMethodId) {
+        return new WithEntityManager(false).<PaymentMethodDetailEntity>doOperation(new EntityManagerCallback<PaymentMethodDetailEntity>() {
+            @Override
+            public PaymentMethodDetailEntity doRealOperation(final EntityManager entityManager) {
+                final PaymentMethodDetailEntity pm = entityManager.find(PaymentMethodDetailEntity.class, zPaymentMethodId);
+                return pm;
+            }
+        });
+    }
+
+    @Override
+    public void insertPaymentMethodDetail(final PaymentMethodDetailEntity pmd) {
+        new WithEntityManager(true).<Void>doOperation(new EntityManagerCallback<Void>() {
+            @Override
+            public Void doRealOperation(final EntityManager entityManager) {
+                entityManager.persist(pmd);
+                return null;
+            }
+        });
+
+    }
+
+    @Override
+    public void deletePaymentMethodDetailById(final String zPaymentMethodId) {
+        new WithEntityManager(true).<Void>doOperation(new EntityManagerCallback<Void>() {
+            @Override
+            public Void doRealOperation(final EntityManager entityManager) {
+                final PaymentMethodDetailEntity pmd = entityManager.find(PaymentMethodDetailEntity.class, zPaymentMethodId);
+                if (pmd != null) {
+                    entityManager.remove(pmd);
                 }
                 return null;
             }

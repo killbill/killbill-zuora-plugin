@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.ning.killbill.zuora.dao.entities.PaymentEntity;
+import com.ning.killbill.zuora.dao.entities.PaymentMethodDetailEntity;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 
 import com.google.common.base.Predicate;
@@ -15,6 +16,7 @@ public class MockZuoraPluginDao implements ZuoraPluginDao {
 
     final List<PaymentMethodEntity> paymentMethodEntities = new ArrayList<PaymentMethodEntity>();
     final List<PaymentEntity> paymentEntities = new ArrayList<PaymentEntity>();
+    final List<PaymentMethodDetailEntity> paymentMethodDetailEntities = new ArrayList<PaymentMethodDetailEntity>();
 
     @Override
     public void insertPaymentMethod(final PaymentMethodEntity pm) {
@@ -84,6 +86,38 @@ public class MockZuoraPluginDao implements ZuoraPluginDao {
 
             for (final PaymentMethodEntity paymentMethodEntity : newPms) {
                 paymentMethodEntities.add(paymentMethodEntity);
+            }
+        }
+    }
+
+    @Override
+    public PaymentMethodDetailEntity getPaymentMethodDetailById(final String zPaymentMethodId) {
+
+        synchronized (paymentMethodDetailEntities) {
+            for (PaymentMethodDetailEntity cur : paymentMethodDetailEntities) {
+                if (cur.getzPmId().equals(zPaymentMethodId)) {
+                    return cur;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void insertPaymentMethodDetail(final PaymentMethodDetailEntity pmd) {
+        synchronized (paymentMethodDetailEntities) {
+            paymentMethodDetailEntities.add(pmd);
+        }
+    }
+
+    @Override
+    public void deletePaymentMethodDetailById(final String zPaymentMethodId) {
+        synchronized (paymentMethodDetailEntities) {
+            for (PaymentMethodDetailEntity cur : paymentMethodDetailEntities) {
+                if (cur.getzPmId().equals(zPaymentMethodId)) {
+                    paymentMethodDetailEntities.remove(cur);
+                    break;
+                }
             }
         }
     }

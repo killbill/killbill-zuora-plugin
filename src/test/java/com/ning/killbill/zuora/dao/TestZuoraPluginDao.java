@@ -19,6 +19,7 @@ import org.testng.annotations.Test;
 
 import com.ning.killbill.zuora.dao.dbi.JDBIZuoraPluginDao;
 import com.ning.killbill.zuora.dao.entities.PaymentEntity;
+import com.ning.killbill.zuora.dao.entities.PaymentMethodDetailEntity;
 import com.ning.killbill.zuora.dao.entities.PaymentMethodEntity;
 import com.ning.killbill.zuora.dao.jpa.JPAZuoraPluginDao;
 
@@ -72,6 +73,24 @@ public class TestZuoraPluginDao {
         */
     }
 
+
+    @Test(groups = "slow", enabled = true)
+    public void testPaymentMethodDetailBasic() throws Exception {
+
+        final String zId1 = "zid1";
+
+        final PaymentMethodDetailEntity pmd1 = new PaymentMethodDetailEntity(zId1, "CreditCard", "mr foo", "visa", "12", "2014", "************4898", "13, rue des Flandres", null, "Paris", "Region parisienne", "75328", "France");
+        defaultZuoraPluginDao.insertPaymentMethodDetail(pmd1);
+
+        final PaymentMethodDetailEntity pmd2 = defaultZuoraPluginDao.getPaymentMethodDetailById(zId1);
+        Assert.assertEquals(pmd1, pmd2);
+
+        defaultZuoraPluginDao.deletePaymentMethodDetailById(zId1);
+
+        final PaymentMethodDetailEntity pmd3 = defaultZuoraPluginDao.getPaymentMethodDetailById(zId1);
+        Assert.assertNull(pmd3);
+
+    }
 
 
 
@@ -269,6 +288,9 @@ public class TestZuoraPluginDao {
         if (dataSource != null) {
             Connection conn = dataSource.getConnection();
             PreparedStatement st = conn.prepareStatement("delete from _zuora_payment_methods");
+            st.execute();
+            st.close();
+            st = conn.prepareStatement("delete from _zuora_payment_methods_details");
             st.execute();
             st.close();
             st = conn.prepareStatement("delete from _zuora_payments");
