@@ -7,7 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Version;
 
-@Entity(name = "_zuora_payment_methods_details")
+@Entity(name = "_zuora_payment_method_details")
 public class PaymentMethodDetailEntity {
 
     @Id

@@ -290,7 +290,7 @@ public class TestZuoraPluginDao {
             PreparedStatement st = conn.prepareStatement("delete from _zuora_payment_methods");
             st.execute();
             st.close();
-            st = conn.prepareStatement("delete from _zuora_payment_methods_details");
+            st = conn.prepareStatement("delete from _zuora_payment_method_details");
             st.execute();
             st.close();
             st = conn.prepareStatement("delete from _zuora_payments");

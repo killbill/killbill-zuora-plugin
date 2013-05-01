@@ -16,14 +16,14 @@ getById() ::= <<
     , state
     , zip
     , country
-  from _zuora_payment_methods_details
+  from _zuora_payment_method_details
   where
   z_pm_id = :zPmId
   ;
 >>
 
 insert() ::= <<
-  insert into _zuora_payment_methods_details (
+  insert into _zuora_payment_method_details (
     z_pm_id
     , type
     , cc_name
@@ -57,7 +57,7 @@ insert() ::= <<
 >>
 
 deleteById() ::= <<
-  delete from _zuora_payment_methods_details
+  delete from _zuora_payment_method_details
   where
     z_pm_id = :zPmId
   ;
