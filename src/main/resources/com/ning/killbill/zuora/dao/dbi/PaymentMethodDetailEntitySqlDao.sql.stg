@@ -23,7 +23,7 @@ getById() ::= <<
 >>
 
 insert() ::= <<
-  insert into _zuora_payment_method_details (
+  insert ignore into _zuora_payment_method_details (
     z_pm_id
     , type
     , cc_name
