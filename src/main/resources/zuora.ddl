@@ -30,4 +30,22 @@ CREATE TABLE `_zuora_payment_methods` (
   KEY `account_id` (`kb_account_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
+DROP TABLE IF EXISTS _zuora_payment_method_details;
+CREATE TABLE `_zuora_payment_method_details` (
+  `z_pm_id` varchar(64) NOT NULL,
+  `address1` varchar(255) DEFAULT NULL,
+  `address2` varchar(255) DEFAULT NULL,
+  `cc_expriration_month` varchar(4) DEFAULT NULL,
+  `cc_expriration_year` varchar(8) DEFAULT NULL,
+  `cc_last4` varchar(32) DEFAULT NULL,
+  `cc_name` varchar(64) DEFAULT NULL,
+  `cc_type` varchar(32) DEFAULT NULL,
+  `city` varchar(40) DEFAULT NULL,
+  `country` varchar(40) DEFAULT NULL,
+  `state` varchar(50) DEFAULT NULL,
+  `type` varchar(32) NOT NULL,
+  `zip` varchar(20) DEFAULT NULL,
+  `last_updated` datetime DEFAULT NULL,
+  PRIMARY KEY (`z_pm_id`),
+  UNIQUE KEY `U__ZRLS_Z_PM_ID` (`z_pm_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
