@@ -22,7 +22,7 @@ getById() ::= <<
 >>
 
 insert() ::= <<
-  insert into _zuora_payments (
+  insert ignore into _zuora_payments (
      kb_p_id
      , kb_account_id
      , z_p_id

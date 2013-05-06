@@ -76,24 +76,40 @@ public class ZuoraPaymentPluginApi extends ZuoraApiBase implements PaymentPlugin
                     // Check if payment already exists in zuora
                     Either<ZuoraError, Payment> paymentExistsOrError = zuoraApi.getPaymentForKillbillPayment(connection, accountExternalKey, kbPaymentId.toString());
                     if (paymentExistsOrError.isRight()) {
-                        return convert(paymentExistsOrError, errorConverter, paymentConverter);
+                        final Payment rowPayment = paymentExistsOrError.getRight();
+                        if ("Processed".equals(rowPayment.getStatus())) {
+                            zuoraPluginDao.insertPayment(new PaymentEntity(kbPaymentId.toString(),
+                                                                           kbAccountId.toString(),
+                                                                           rowPayment.getId(),
+                                                                           rowPayment.getCreatedDate().toDate(),
+                                                                           rowPayment.getEffectiveDate().toDate(),
+                                                                           rowPayment.getAmount(),
+                                                                           rowPayment.getStatus(),
+                                                                           rowPayment.getGatewayResponse(),
+                                                                           rowPayment.getGatewayResponseCode(),
+                                                                           rowPayment.getReferenceId(),
+                                                                           rowPayment.getSecondPaymentReferenceId()));
+                            return convert(paymentExistsOrError, errorConverter, paymentConverter);
+                        }
                     }
 
 
                     Either<ZuoraError, Payment> rowPaymentOrError = zuoraApi.processPayment(connection, accountExternalKey, amount, kbPaymentId.toString());
                     if (rowPaymentOrError.isRight()) {
                         final Payment rowPayment = rowPaymentOrError.getRight();
-                        zuoraPluginDao.insertPayment(new PaymentEntity(kbPaymentId.toString(),
-                                                                       kbAccountId.toString(),
-                                                                       rowPayment.getId(),
-                                                                       rowPayment.getCreatedDate().toDate(),
-                                                                       rowPayment.getEffectiveDate().toDate(),
-                                                                       rowPayment.getAmount(),
-                                                                       rowPayment.getStatus(),
-                                                                       rowPayment.getGatewayResponse(),
-                                                                       rowPayment.getGatewayResponseCode(),
-                                                                       rowPayment.getReferenceId(),
-                                                                       rowPayment.getSecondPaymentReferenceId()));
+                        if ("Processed".equals(rowPayment.getStatus())) {
+                            zuoraPluginDao.insertPayment(new PaymentEntity(kbPaymentId.toString(),
+                                                                           kbAccountId.toString(),
+                                                                           rowPayment.getId(),
+                                                                           rowPayment.getCreatedDate().toDate(),
+                                                                           rowPayment.getEffectiveDate().toDate(),
+                                                                           rowPayment.getAmount(),
+                                                                           rowPayment.getStatus(),
+                                                                           rowPayment.getGatewayResponse(),
+                                                                           rowPayment.getGatewayResponseCode(),
+                                                                           rowPayment.getReferenceId(),
+                                                                           rowPayment.getSecondPaymentReferenceId()));
+                        }
                     }
                     return convert(rowPaymentOrError, errorConverter, paymentConverter);
                 }
