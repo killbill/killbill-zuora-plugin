@@ -91,13 +91,13 @@ public class ZuoraPaymentMethodPlugin implements PaymentMethodPlugin {
     }
 
     @Override
-    public String getCCExprirationMonth() {
+    public String getCCExpirationMonth() {
         final String [] parts = ZuoraApi.parseExpirationDate(getValueString(CreditCardProperties.EXPIRATION_DATE));
         return parts != null && parts.length == 2 ? parts[1] : null;
     }
 
     @Override
-    public String getCCExprirationYear() {
+    public String getCCExpirationYear() {
         final String [] parts = ZuoraApi.parseExpirationDate(getValueString(CreditCardProperties.EXPIRATION_DATE));
         return parts != null && parts.length == 2 ? parts[0] : null;
     }
