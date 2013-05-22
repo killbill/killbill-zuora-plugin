@@ -1,18 +1,11 @@
 package com.ning.killbill.zuora.http;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
-
-import javax.annotation.Nullable;
-
-import org.joda.time.DateTime;
 
 import com.ning.billing.account.api.Account;
 import com.ning.billing.payment.api.PaymentMethod;
-import com.ning.billing.payment.api.PaymentMethodPlugin;
-import com.ning.billing.payment.api.PaymentMethodPlugin.PaymentMethodKVInfo;
+import com.ning.billing.payment.api.PaymentMethodKVInfo;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -101,7 +94,7 @@ public class PaymentMethodJson {
         }
 
         public static PaymentMethodPluginDetailJson toPaymentMethodPluginDetailJson(final String externalPaymentId,
-                                             final List<PaymentMethodKVInfo> properties) {
+                                                                                    final List<PaymentMethodKVInfo> properties) {
 
             final List<PaymentMethodProperties> props = new ArrayList<PaymentMethodProperties>();
             props.addAll(Collections2.transform(properties, new Function<PaymentMethodKVInfo, PaymentMethodProperties>() {
@@ -139,7 +132,7 @@ public class PaymentMethodJson {
         }
 
         public PaymentMethodProperties(PaymentMethodKVInfo info) {
-            this(info.getKey(), (String)info.getValue(), info.getIsUpdatable());
+            this(info.getKey(), (String) info.getValue(), info.getIsUpdatable());
         }
 
 

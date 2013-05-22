@@ -22,7 +22,8 @@ import java.math.BigDecimal;
 import org.joda.time.DateTime;
 
 import com.ning.billing.payment.plugin.api.PaymentInfoPlugin;
-import com.ning.billing.payment.plugin.api.PaymentInfoPlugin.PaymentPluginStatus;
+import com.ning.billing.payment.plugin.api.PaymentPluginStatus;
+
 import com.zuora.api.object.Payment;
 
 public class PaymentConverter implements Converter<Payment, PaymentInfoPlugin> {

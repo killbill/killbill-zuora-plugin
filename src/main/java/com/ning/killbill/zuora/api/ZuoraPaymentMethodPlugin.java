@@ -19,6 +19,7 @@ package com.ning.killbill.zuora.api;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.ning.billing.payment.api.PaymentMethodKVInfo;
 import com.ning.billing.payment.api.PaymentMethodPlugin;
 import com.ning.killbill.zuora.method.CreditCardProperties;
 import com.ning.killbill.zuora.zuora.ZuoraApi;
@@ -38,7 +39,7 @@ public class ZuoraPaymentMethodPlugin implements PaymentMethodPlugin {
     public ZuoraPaymentMethodPlugin(final String paymentMethodId, boolean isDefault) {
         this.paymentMethodId = paymentMethodId;
         this.isDefault = isDefault;
-        this.properties = new LinkedList<PaymentMethodPlugin.PaymentMethodKVInfo>();
+        this.properties = new LinkedList<PaymentMethodKVInfo>();
     }
 
     @Override

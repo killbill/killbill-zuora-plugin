@@ -4,11 +4,9 @@ import java.math.BigDecimal;
 
 import org.joda.time.DateTime;
 
-import com.ning.billing.payment.plugin.api.PaymentInfoPlugin;
 import com.ning.billing.payment.plugin.api.RefundInfoPlugin;
-import com.ning.billing.payment.plugin.api.RefundInfoPlugin.RefundPluginStatus;
+import com.ning.billing.payment.plugin.api.RefundPluginStatus;
 
-import com.zuora.api.object.Payment;
 import com.zuora.api.object.Refund;
 
 public class RefundConverter implements Converter<Refund, RefundInfoPlugin> {
