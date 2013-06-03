@@ -78,7 +78,7 @@ public class ZuoraPaymentMethodPlugin implements PaymentMethodPlugin {
 
     @Override
     public String getType() {
-        return getValueString(CreditCardProperties.TYPE_VALUE);
+        return getValueString(CreditCardProperties.TYPE);
     }
 
     @Override

@@ -557,8 +557,6 @@ public class ZuoraApi {
             final String currentPaymentGateway = account.getPaymentGateway();
             final boolean currentAutoPayStatus = account.isAutoPay();
 
-            logService.log(LogService.LOG_INFO, String.format("STEPH getPaymentMethodsForAccount %s", account.getAccountNumber()));
-
             boolean updatedPaymentGateway = false;
             if (defaultAccountPaymentMethodId != null) {
                 PaymentMethod defaultPaymentMethod = null;
