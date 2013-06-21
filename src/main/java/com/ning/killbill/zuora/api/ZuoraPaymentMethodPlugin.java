@@ -62,8 +62,11 @@ public class ZuoraPaymentMethodPlugin implements PaymentMethodPlugin {
     }
 
 
-    @Override
     public String getValueString(String key) {
+        return getValueString(properties, key);
+    }
+
+    public static String getValueString(List<PaymentMethodKVInfo> properties, String key) {
         if (properties == null) {
             return null;
         }

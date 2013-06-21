@@ -61,6 +61,8 @@ import com.zuora.api.object.Refund;
 import com.zuora.api.object.RefundInvoicePayment;
 import com.zuora.api.object.Subscription;
 
+import static com.ning.killbill.zuora.api.ZuoraPaymentMethodPlugin.getValueString;
+
 public class ZuoraApi {
 
     public static final String ZUORA_ACCOUNT_ID_KEY = "zuoraAccountId";
@@ -641,7 +643,7 @@ public class ZuoraApi {
                 return Either.left(accountOrError.getLeft());
             }
 
-            final String paymentMethodType = paymentMethodProps.getValueString(PaymentMethodProperties.TYPE);
+            final String paymentMethodType = getValueString(paymentMethodProps.getProperties(), PaymentMethodProperties.TYPE);
             if (PaypalProperties.TYPE_VALUE.equals(paymentMethodType)) {
                 return addPaypalPaymentMethod(connection, accountOrError.getRight(), paymentMethodProps, setDefault);
             } else if (CreditCardProperties.TYPE_VALUE.equals(paymentMethodType)) {
@@ -676,8 +678,8 @@ public class ZuoraApi {
             final PaymentMethod paymentMethod = objectFactory.createPaymentMethod();
             paymentMethod.setAccountId(account.getId());
             paymentMethod.setType(PaypalProperties.TYPE_VALUE);
-            paymentMethod.setPaypalBaid(paymentMethodProps.getValueString(PaypalProperties.BAID));
-            paymentMethod.setPaypalEmail(paymentMethodProps.getValueString(PaypalProperties.EMAIL));
+            paymentMethod.setPaypalBaid(getValueString(paymentMethodProps.getProperties(), PaypalProperties.BAID));
+            paymentMethod.setPaypalEmail(getValueString(paymentMethodProps.getProperties(), PaypalProperties.EMAIL));
 
             final Either<ZuoraError, String> errorOrId = connection.createWithId(paymentMethod);
 
@@ -813,35 +815,35 @@ public class ZuoraApi {
             // CREATE
             paymentMethod.setType(CreditCardProperties.TYPE_VALUE);
             paymentMethod.setAccountId(accountId);
-            paymentMethod.setCreditCardType(creditCardPaymentMethod.getValueString(CreditCardProperties.CARD_TYPE));
-            paymentMethod.setCreditCardNumber(creditCardPaymentMethod.getValueString(CreditCardProperties.MASK_NUMBER));
+            paymentMethod.setCreditCardType(getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.CARD_TYPE));
+            paymentMethod.setCreditCardNumber(getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.MASK_NUMBER));
         }
 
-        if (creditCardPaymentMethod.getValueString(CreditCardProperties.CARD_HOLDER_NAME) != null) {
-            paymentMethod.setCreditCardHolderName(creditCardPaymentMethod.getValueString(CreditCardProperties.CARD_HOLDER_NAME));
+        if (getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.CARD_HOLDER_NAME) != null) {
+            paymentMethod.setCreditCardHolderName(getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.CARD_HOLDER_NAME));
         }
-        String[] tokens = parseExpirationDate(creditCardPaymentMethod.getValueString(CreditCardProperties.EXPIRATION_DATE));
+        String[] tokens = parseExpirationDate(getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.EXPIRATION_DATE));
         if (tokens != null && tokens.length == 2) {
             paymentMethod.setCreditCardExpirationYear(Integer.parseInt(tokens[0]));
             paymentMethod.setCreditCardExpirationMonth(Integer.parseInt(tokens[1]));
         }
-        if (creditCardPaymentMethod.getValueString(CreditCardProperties.ADDRESS1) != null) {
-            paymentMethod.setCreditCardAddress1(creditCardPaymentMethod.getValueString(CreditCardProperties.ADDRESS1));
+        if (getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.ADDRESS1) != null) {
+            paymentMethod.setCreditCardAddress1(getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.ADDRESS1));
         }
-        if (creditCardPaymentMethod.getValueString(CreditCardProperties.ADDRESS2) != null) {
-            paymentMethod.setCreditCardAddress2(creditCardPaymentMethod.getValueString(CreditCardProperties.ADDRESS2));
+        if (getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.ADDRESS2) != null) {
+            paymentMethod.setCreditCardAddress2(getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.ADDRESS2));
         }
-        if (creditCardPaymentMethod.getValueString(CreditCardProperties.CITY) != null) {
-            paymentMethod.setCreditCardCity(creditCardPaymentMethod.getValueString(CreditCardProperties.CITY));
+        if (getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.CITY) != null) {
+            paymentMethod.setCreditCardCity(getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.CITY));
         }
-        if (creditCardPaymentMethod.getValueString(CreditCardProperties.POSTAL_CODE) != null) {
-            paymentMethod.setCreditCardPostalCode(creditCardPaymentMethod.getValueString(CreditCardProperties.POSTAL_CODE));
+        if (getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.POSTAL_CODE) != null) {
+            paymentMethod.setCreditCardPostalCode(getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.POSTAL_CODE));
         }
-        if (creditCardPaymentMethod.getValueString(CreditCardProperties.STATE) != null) {
-            paymentMethod.setCreditCardState(creditCardPaymentMethod.getValueString(CreditCardProperties.STATE));
+        if (getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.STATE) != null) {
+            paymentMethod.setCreditCardState(getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.STATE));
         }
-        if (creditCardPaymentMethod.getValueString(CreditCardProperties.COUNTRY) != null) {
-            paymentMethod.setCreditCardCountry(creditCardPaymentMethod.getValueString(CreditCardProperties.COUNTRY));
+        if (getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.COUNTRY) != null) {
+            paymentMethod.setCreditCardCountry(getValueString(creditCardPaymentMethod.getProperties(), CreditCardProperties.COUNTRY));
         }
         return paymentMethod;
     }

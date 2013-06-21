@@ -36,7 +36,8 @@
   </scm>
 
     <properties>
-        <killbill.version>0.1.78</killbill.version>
+        <killbill.version>0.2.6-SNAPSHOT</killbill.version>
+        <killbill-plugin.version>0.2.4</killbill-plugin.version>
     </properties>
     <dependencies>
         <dependency>
@@ -55,9 +56,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing</groupId>
-            <artifactId>killbill-api</artifactId>
-            <version>${killbill.version}</version>
+            <groupId>com.ning.billing.plugin</groupId>
+            <artifactId>killbill-plugin-api-payment</artifactId>
+            <version>${killbill-plugin.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

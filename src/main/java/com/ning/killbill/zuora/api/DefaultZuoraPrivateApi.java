@@ -27,6 +27,8 @@ import com.zuora.api.object.Invoice;
 import com.zuora.api.object.Payment;
 import com.zuora.api.object.PaymentMethod;
 
+import static com.ning.killbill.zuora.api.ZuoraPaymentMethodPlugin.getValueString;
+
 public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivateApi {
 
 
@@ -86,7 +88,7 @@ public class DefaultZuoraPrivateApi extends ZuoraApiBase implements ZuoraPrivate
     public void updateDefaultPaymentMethod(final UUID accountId, final PaymentMethodPlugin paymentMethodProps, final TenantContext context) throws PaymentPluginApiException {
 
         final String externalKey = defaultKillbillApi.getAccountExternalKeyFromAccountId(accountId, context);
-        final String paymentMethodType = paymentMethodProps.getValueString(PaymentMethodProperties.TYPE);
+        final String paymentMethodType = getValueString(paymentMethodProps.getProperties(), PaymentMethodProperties.TYPE);
         if (CreditCardProperties.TYPE_VALUE.equals(paymentMethodType)) {
 
             final Either<ZuoraError, PaymentMethodPlugin> result = withConnection(new ConnectionCallback<Either<ZuoraError, PaymentMethodPlugin>>() {
