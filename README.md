@@ -1,8 +1,9 @@
 What is it?
 -----------
 
-The killbill-zuora-plugin is a Killbill payment plugin that allows to interact with zuora as a payment gateway. Its has been tested with
-the version 27.0 of the zuora API.
+The killbill-zuora-plugin is a Killbill payment plugin that allows to interact with zuora as a payment gateway. Its has been tested with the version 27.0 of the zuora API.
+
+Release builds are available on [Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.ning.killbill%22%20AND%20a%3A%22zuora-plugin%22) with coordinates `com.ning.killbill:zuora-plugin`.
 
 Setup
 -----
